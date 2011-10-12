@@ -1,8 +1,8 @@
 package ncsu.csc.search;
 
 import ncsu.csc.datastructures.DecorablePosition;
+
 import ncsu.csc.datastructures.LinkedList;
-import ncsu.csc.datastructures.List;
 
 import ncsu.csc.datastructures.LinkedStack;
 
@@ -14,7 +14,7 @@ import ncsu.csc.datastructures.Stack;
 
 import ncsu.csc.datastructures.Vertex;
 
-public class SearchDepthFirst<V, E, I, R> {
+public class SearchUninformedDepthFirst<V, E, I, R> {
 
 	protected Graph<V, E> _Graph;
 	

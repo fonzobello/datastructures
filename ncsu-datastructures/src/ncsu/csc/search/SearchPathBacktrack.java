@@ -6,7 +6,7 @@ import ncsu.csc.datastructures.List;
 import ncsu.csc.datastructures.TreePosition;
 import ncsu.csc.datastructures.Vertex;
 
-public class SearchPathBacktrack<V, E> extends SearchDepthFirst <V, E, Object, List<V>> {
+public class SearchPathBacktrack<V, E> extends SearchUninformedDepthFirst <V, E, Object, List<V>> {
 
 	protected LinkedList<V> _SolutionPath;
 	

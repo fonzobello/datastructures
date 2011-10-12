@@ -1,4 +1,5 @@
 package ncsu.csc.datastructures;
+
 public class TreeNode<E> implements TreePosition<E> {
 
 	private E _Element;
