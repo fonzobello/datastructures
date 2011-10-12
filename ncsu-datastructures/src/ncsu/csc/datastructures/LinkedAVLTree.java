@@ -1,4 +1,5 @@
 package ncsu.csc.datastructures;
+
 import java.util.Comparator;
 
 public class LinkedAVLTree<K,V> extends LinkedBinarySearchTree<K,V> implements Dictionary<K,V> {

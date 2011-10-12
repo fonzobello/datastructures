@@ -8,7 +8,7 @@ import ncsu.csc.datastructures.Graph;
 
 import ncsu.csc.datastructures.Vertex;
 
-public class SearchBacktrack<V, E, I, R> {
+public class SearchUninformedBacktrack<V, E, I, R> {
 
 	protected Graph<V, E> _Graph;
 
