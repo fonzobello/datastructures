@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -8,9 +10,13 @@ public class Main {
 	
 	private Graph<String, String> _DiabeticSemanticNetwork;
 	
+	private HashMap<String, Edge<String>> _Values;
+	
 	public Main() {
 		
 		_DiabeticSemanticNetwork = new AdjacencyListGraph<String, String>();
+		
+		 _Values = new HashMap<String, Edge<String>>();
 		
 		Vertex<String> david = _DiabeticSemanticNetwork.insertVertex("david");
 		Vertex<String> diabetics = _DiabeticSemanticNetwork.insertVertex("diabetics");
@@ -23,23 +29,37 @@ public class Main {
 		_DiabeticSemanticNetwork.insertEdge(candy, sugar, "contains");
 		_DiabeticSemanticNetwork.insertEdge(snickers, candy, "ako");
 		
+		expand();
+		
+		_DiabeticSemanticNetwork = new AdjacencyListGraph<String, String>();
+		
+		Iterator<Edge<String>> edges = _Values.values().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			_DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(edge), _DiabeticSemanticNetwork.endVertex(edge), edge.element());
+			
+		}
+		
 	}
 	
-	public void expand() {
-		
-		HashSet<String> values = new HashSet<String>();
+	private void expand() {
 		
 		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
 		
 		while (edges.hasNext()) {
 			
-			values.add(edges.next().toString());
+			Edge<String> edge = edges.next();
+			
+			_Values.put(edge.toString(), edge);
 			
 		}
 		
 		int previousSize = -1;
 		
-		while (previousSize != values.size()) {
+		while (previousSize != _Values.size()) {
 			
 			edges = _DiabeticSemanticNetwork.edges().iterator();
 			
@@ -57,7 +77,7 @@ public class Main {
 						
 						if (_DiabeticSemanticNetwork.startVertex(incidentEdge).equals(_DiabeticSemanticNetwork.endVertex(edge)))
 							
-							values.add(_DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(edge), _DiabeticSemanticNetwork.endVertex(incidentEdge), incidentEdge.element()).toString());
+							_Values.put(_DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(edge), _DiabeticSemanticNetwork.endVertex(incidentEdge), incidentEdge.element()).toString(), _DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(edge), _DiabeticSemanticNetwork.endVertex(incidentEdge), incidentEdge.element()));
 	
 					}
 					
@@ -73,7 +93,7 @@ public class Main {
 						
 						if (_DiabeticSemanticNetwork.startVertex(incidentEdge).equals(_DiabeticSemanticNetwork.endVertex(edge)))
 	
-							values.add(_DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(edge), _DiabeticSemanticNetwork.endVertex(incidentEdge), incidentEdge.element()).toString());
+							_Values.put(_DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(edge), _DiabeticSemanticNetwork.endVertex(incidentEdge), incidentEdge.element()).toString(), _DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(edge), _DiabeticSemanticNetwork.endVertex(incidentEdge), incidentEdge.element()));
 						
 					}
 					
@@ -91,7 +111,7 @@ public class Main {
 						
 						if (incidentEdge.element().equals("shouldAvoid"))
 							
-							values.add(_DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(incidentEdge), _DiabeticSemanticNetwork.startVertex(edge), "shouldAvoid").toString());
+							_Values.put(_DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(incidentEdge), _DiabeticSemanticNetwork.startVertex(edge), "shouldAvoid").toString(), _DiabeticSemanticNetwork.insertEdge(_DiabeticSemanticNetwork.startVertex(incidentEdge), _DiabeticSemanticNetwork.startVertex(edge), "shouldAvoid"));
 							
 					}
 					
@@ -99,13 +119,15 @@ public class Main {
 				
 			}
 			
-			previousSize = values.size();
+			previousSize = _Values.size();
 			
 		}
 		
 	}
 	
-	public Iterable<String> executeQuery(String query) {
+	public void executeQuery(String query) throws IOException {
+		
+		Iterable<String> toReturn = null;
 		
 		query = query.replaceAll("[\\s]", "");
 		
@@ -113,47 +135,71 @@ public class Main {
 		
 		if ((result.length != 4) || (!result[0].equals("value"))) {
 			
-			System.err.println("ERROR: toplevel: Undefined procedure: notVlaue");
+			System.err.println("ERROR: toplevel: Undefined procedure: " + result[0]);
 			
-			return null;
+			return;
 			
 		}
 		
 		if ((!result[1].substring(0, 1).matches("[A-Z]")) && (!result[2].substring(0, 1).matches("[A-Z]")) && (!result[3].substring(0, 1).matches("[A-Z]"))) {
 
-			return query1(result[1], result[2], result[3]);
+			toReturn =  query1(result[1], result[2], result[3]);
 			
 		} else if ((result[1].substring(0, 1).matches("[A-Z]")) && (!result[2].substring(0, 1).matches("[A-Z]")) && (!result[3].substring(0, 1).matches("[A-Z]"))) {
 			
-			return query2(result[2], result[3]);
+			toReturn = query2(result[1], result[2], result[3]);
 			
 		} else if ((!result[1].substring(0, 1).matches("[A-Z]")) && (result[2].substring(0, 1).matches("[A-Z]")) && (!result[3].substring(0, 1).matches("[A-Z]"))) {
 		
-			return query3(result[1], result[3]);
+			toReturn = query3(result[1], result[2], result[3]);
 			
 		} else if ((!result[1].substring(0, 1).matches("[A-Z]")) && (!result[2].substring(0, 1).matches("[A-Z]")) && (result[3].substring(0, 1).matches("[A-Z]"))) {
 	
-			return query4(result[1], result[2]);
+			toReturn = query4(result[1], result[2], result[3]);
 			
 		} else if ((!result[1].substring(0, 1).matches("[A-Z]")) && (result[2].substring(0, 1).matches("[A-Z]")) && (result[3].substring(0, 1).matches("[A-Z]"))) {
 		
-			return query5(result[1]);
+			toReturn = query5(result[1], result[2], result[3]);
 			
 		} else if ((result[1].substring(0, 1).matches("[A-Z]")) && (!result[2].substring(0, 1).matches("[A-Z]")) && (result[3].substring(0, 1).matches("[A-Z]"))) {
 		
-			return query6(result[2]);
+			toReturn = query6(result[1], result[2], result[3]);
 			
 		} else if ((result[1].substring(0, 1).matches("[A-Z]")) && (result[2].substring(0, 1).matches("[A-Z]")) && (!result[3].substring(0, 1).matches("[A-Z]"))) {
 			
-			return query7(result[3]);
+			toReturn = query7(result[1], result[2], result[3]);
 			
 		} else if ((result[1].substring(0, 1).matches("[A-Z]")) && (result[2].substring(0, 1).matches("[A-Z]")) && (result[3].substring(0, 1).matches("[A-Z]"))) {
 			
-			return query8(result[1], result[2], result[3]);
+			toReturn = query8(result[1], result[2], result[3]);
 			
 		}
 		
-		return null;
+		if (toReturn != null) {
+			
+			InputStreamReader converter = new InputStreamReader(System.in);
+
+			BufferedReader in = new BufferedReader(converter);
+			
+			Iterator<String> results = toReturn.iterator();
+			
+			String currentLine = "";
+			
+			while (results.hasNext()) {
+				
+				System.out.print(results.next() + " ");
+				
+				currentLine = in.readLine();
+						
+				if (currentLine.equals(".")) break;
+				
+				else if (currentLine.equals(";")) ;
+				
+				else break;
+				
+			}
+			
+		}
 		
 	}
 	
@@ -161,53 +207,177 @@ public class Main {
 	
 		List<String> toReturn = new LinkedList<String>();
 		
-		return toReturn;
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
 		
-	}
-	
-	public Iterable<String> query2(String slot, String value) {
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			if ((_DiabeticSemanticNetwork.startVertex(edge).element().equals(node) &&
+					
+					_DiabeticSemanticNetwork.endVertex(edge).element().equals(value) &&
+					
+					(edge.element().equals(slot)))) {
+				
+				toReturn.insertLast("true");
+				
+				break;
+				
+			}
+			
+		}
 		
-		List<String> toReturn = new LinkedList<String>();
-		
-		return toReturn;
-		
-	}
-	
-	public Iterable<String> query3(String slot, String value) {
-		
-		List<String> toReturn = new LinkedList<String>();
-		
-		return toReturn;
-		
-	}
-	
-	public Iterable<String> query4(String slot, String value) {
-		
-		List<String> toReturn = new LinkedList<String>();
+		toReturn.insertLast("false");
 		
 		return toReturn;
 		
 	}
 	
-	public Iterable<String> query5(String slot) {
+	public Iterable<String> query2(String node, String slot, String value) {
 		
 		List<String> toReturn = new LinkedList<String>();
+		
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			if ((_DiabeticSemanticNetwork.endVertex(edge).element().equals(value) &&
+					
+					(edge.element().equals(slot)))) {
+				
+				toReturn.insertLast(node + " = " + _DiabeticSemanticNetwork.startVertex(edge));
+				
+			}
+			
+		}
+		
+		toReturn.insertLast("false");
 		
 		return toReturn;
 		
 	}
 	
-	public Iterable<String> query6(String slot) {
+	public Iterable<String> query3(String node, String slot, String value) {
 		
 		List<String> toReturn = new LinkedList<String>();
+		
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			if ((_DiabeticSemanticNetwork.startVertex(edge).element().equals(node) &&
+					
+					(_DiabeticSemanticNetwork.endVertex(edge).element().equals(value)))) {
+				
+				toReturn.insertLast(slot + " = " + edge.element());
+				
+			}
+			
+		}
+		
+		toReturn.insertLast("false");
 		
 		return toReturn;
 		
 	}
 	
-	public Iterable<String> query7(String slot) {
+	public Iterable<String> query4(String node, String slot, String value) {
 		
 		List<String> toReturn = new LinkedList<String>();
+		
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			if ((_DiabeticSemanticNetwork.startVertex(edge).element().equals(node) &&
+					
+					(edge.element().equals(slot)))) {
+				
+				toReturn.insertLast(value + " = " + _DiabeticSemanticNetwork.endVertex(edge).element());
+				
+			}
+			
+		}
+		
+		toReturn.insertLast("false");
+		
+		return toReturn;
+		
+	}
+	
+	public Iterable<String> query5(String node, String slot, String value) {
+		
+		List<String> toReturn = new LinkedList<String>();
+		
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			if (_DiabeticSemanticNetwork.startVertex(edge).element().equals(node)) {
+				
+				toReturn.insertLast(slot + " = " + edge.element() + ",\n" + value + " = " + _DiabeticSemanticNetwork.endVertex(edge).element());
+				
+			}
+			
+		}
+		
+		toReturn.insertLast("false");
+		
+		return toReturn;
+		
+	}
+	
+	public Iterable<String> query6(String node, String slot, String value) {
+		
+		List<String> toReturn = new LinkedList<String>();
+		
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			if ((edge.element().equals(slot))) {
+				
+				toReturn.insertLast(node + " = " + _DiabeticSemanticNetwork.startVertex(edge).element() + ",\n" + value + " = " + _DiabeticSemanticNetwork.endVertex(edge).element());
+				
+			}
+			
+		}
+		
+		toReturn.insertLast("false");
+		
+		return toReturn;
+		
+	}
+	
+	public Iterable<String> query7(String node, String slot, String value) {
+		
+		List<String> toReturn = new LinkedList<String>();
+		
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+			
+			if ( _DiabeticSemanticNetwork.endVertex(edge).element().equals(value)) {
+				
+				toReturn.insertLast(node + " = " + _DiabeticSemanticNetwork.startVertex(edge).element() + ",\n" + slot + " = " + edge.element());
+				
+			}
+			
+		}
+		
+		toReturn.insertLast("false");
 		
 		return toReturn;
 		
@@ -217,6 +387,18 @@ public class Main {
 		
 		List<String> toReturn = new LinkedList<String>();
 		
+		Iterator<Edge<String>> edges = _DiabeticSemanticNetwork.edges().iterator();
+		
+		while (edges.hasNext()) {
+			
+			Edge<String> edge = edges.next();
+				
+				toReturn.insertLast(node + " = " + _DiabeticSemanticNetwork.startVertex(edge).element() + ",\n" + slot + " = " + edge.element() + ",\n" + value + " = " + _DiabeticSemanticNetwork.endVertex(edge).element());
+			
+		}
+		
+		toReturn.insertLast("false");
+		
 		return toReturn;
 		
 	}
@@ -224,8 +406,6 @@ public class Main {
 	public static void main(String[] args) {
 		
 		Main main = new Main();
-		
-		main.expand();
 		
 		InputStreamReader converter = new InputStreamReader(System.in);
 
@@ -237,11 +417,13 @@ public class Main {
 			
 			try {
 				
+				System.out.print("?- ");
+				
 				currentLine = in.readLine();
 				
+				main.executeQuery(currentLine);
+				
 			} catch (IOException e) {}
-			
-			main.executeQuery(currentLine);
 		
 		}
 		
