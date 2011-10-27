@@ -1,9 +1,7 @@
 import java.io.BufferedReader;
-import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 
 public class Main {
@@ -126,6 +124,8 @@ public class Main {
 	}
 	
 	public void executeQuery(String query) throws IOException {
+		
+		if (query.equals("exit.")) return;
 		
 		Iterable<String> toReturn = null;
 		
@@ -413,7 +413,7 @@ public class Main {
 
 		String currentLine = "";
 		
-		while (!(currentLine.equals("end"))){
+		while (!(currentLine.equals("exit."))){
 			
 			try {
 				
