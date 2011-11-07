@@ -1,3 +1,5 @@
+import java.io.Console;
+
 import java.io.File;
 
 import java.io.IOException;
@@ -20,15 +22,33 @@ public class Btree {
 		
 		RandomAccessFile myFile = new RandomAccessFile(newFile, "rw");
 
-		LinkedBTree myBTree =  new LinkedBTree(myFile, 3);
+		LinkedBTree myBTree =  new LinkedBTree(myFile, 33);
+
+		Console c = System.console();
+        
+		if (c == null) {
+           
+			System.err.println("No console.");
+            
+			System.exit(1);
+        
+		}
+
+		String command;
 		
-		myBTree.insert(25);
+		while ((command = c.readLine()) != "end") {
+			
+			String[] arguments = command.split(" ");
+			
+			if (arguments[0].equals("add")) myBTree.insert(Integer.parseInt(arguments[1]));
+			
+			else if (arguments[0].equals("find")) myBTree.;
+			
+			else if (arguments[0].equals("print")) ;
+			
+		}
 		
-		myBTree.insert(10);
-		
-		myBTree.insert(15);
-		
-		myBTree.print();
+        
 		
 	}
 	
