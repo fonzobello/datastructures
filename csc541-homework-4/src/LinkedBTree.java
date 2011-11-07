@@ -16,6 +16,10 @@ public class LinkedBTree {
 	
 	private Integer _NumNodes;
 	
+	private Integer _MinKeys;
+	
+	private Integer _MaxKeys;
+	
 	private MyInteger _Root;
 	
 	private LinkedBTreeNode _CurrentNode;
@@ -25,6 +29,10 @@ public class LinkedBTree {
 		_File = file;
 		
 		_Order = order;
+		
+		_MinKeys = (order - 1) / 2;
+		
+		_MaxKeys = (order - 1);
 		
 		_NodeSize = 4 + (4 * (order - 1)) + (4 * order);
 
@@ -36,11 +44,11 @@ public class LinkedBTree {
 
 	}
 	
-	public void addItem(MyInteger newItem, MyInteger newRight, LinkedBTreeNode node, MyInteger location) {
+	public void addItem(MyInteger newItem, int newRight, LinkedBTreeNode node, int location) {
 
 		int j;
 
-		for (j = node.size(); j > location.getValue(); j--) {
+		for (j = node.size(); j > location; j--) {
 
 			node.setKey(j, node.key(j - 1));
 
@@ -48,11 +56,29 @@ public class LinkedBTree {
 
 		}
 
-		node.setKey(location.getValue(), newItem.getValue());
+		node.setKey(location, newItem.getValue());
 
-		node.setPointer(location.getValue() + 1, newRight.getValue());
+		node.setPointer(location + 1, newRight);
 
 		node.setSize(node.size() + 1);
+		
+	}
+	
+	public boolean treeSearch(Integer key) {
+		
+		_CurrentNode = readNode(0);
+		
+		Integer keys[] = _CurrentNode.keys();
+		
+		for (int i = 0; i < keys.length; i ++) {
+			
+			if (keys[i] < key) goLeft();
+			
+			else if (keys[i] = key) return true;
+			
+			else if (keys[i] > key)
+			
+		}
 		
 	}
 	
@@ -100,9 +126,9 @@ public class LinkedBTree {
 
 			_NumNodes++;
 
-			_Root.setValue(_NumNodes - 1);
+			_Root.setValue(_NumNodes);
 
-			writeNode(_NumNodes - 1, _CurrentNode);
+			writeNode(_NumNodes, _CurrentNode);
 
 		}
 
@@ -140,7 +166,7 @@ public class LinkedBTree {
 
 					moveUp.setValue(false);
 
-					addItem(newItem, newRight, _CurrentNode, new MyInteger(location.getValue() + 1));
+					addItem(newItem, newRight.getValue(), _CurrentNode, location.getValue() + 1);
 					
 					writeNode(currentRoot.getValue(), _CurrentNode);
 
@@ -148,7 +174,7 @@ public class LinkedBTree {
 
 					moveUp.setValue(true);
 
-					split(newItem, newRight, currentRoot, new MyInteger(location.getValue()), newItem, newRight);
+					split(newItem, newRight.getValue(), currentRoot.getValue(), location.getValue(), newItem, newRight);
 
 				}
 
@@ -158,17 +184,19 @@ public class LinkedBTree {
 
 	}
 
-	public void split(MyInteger currentItem, MyInteger currentRight, MyInteger currentRoot, MyInteger location, MyInteger newItem, MyInteger newRight) {
+	public void split(MyInteger currentItem, int currentRight, int currentRoot, int location, MyInteger NewItem, MyInteger newRight) {
 
-		Integer j, median;
+		int j, median;
 
 		LinkedBTreeNode rightNode = new LinkedBTreeNode(_Order);
 
-		median = (_Order - 1) / 2;
+		if (location < _MinKeys) median = _MinKeys;
 
-		_CurrentNode = readNode(currentRoot.getValue());
+		else median = _MinKeys + 1;
 
-		for (j = median; j < (_Order - 1); j++) {
+		_CurrentNode = readNode(currentRoot);
+
+		for (j = median; j < _MaxKeys; j++) {
 
 			rightNode.setKey(j - median, _CurrentNode.key(j));
 
@@ -176,19 +204,27 @@ public class LinkedBTree {
 
 		}
 
-		rightNode.setSize((_Order - 1) - median);
+		rightNode.setSize(_MaxKeys - median);
 
 		_CurrentNode.setSize(median);
 
-		addItem(currentItem, currentRight, rightNode, new MyInteger(location.getValue() - median + 1));
+		if (location < _MinKeys) addItem(currentItem, currentRight, _CurrentNode, location + 1);
 
-		newItem.setValue(_CurrentNode.key(_CurrentNode.size() - 1));
+		else addItem(currentItem, currentRight, rightNode, location - median + 1);
+
+		NewItem.setValue(_CurrentNode.key(_CurrentNode.size() - 1));
 
 		rightNode.setPointer(0, _CurrentNode.pointer(_CurrentNode.size()));
 
 		_CurrentNode.setSize(_CurrentNode.size() - 1);
 
-		writeNode(currentRoot.getValue(), _CurrentNode);
+		for (int i = 0; i < _CurrentNode.keys().length; i ++) {
+			
+			if (i >= _CurrentNode.size()) _CurrentNode.setKey(i, -1);
+			
+		}
+		
+		writeNode(currentRoot, _CurrentNode);
 
 		_NumNodes++;
 
@@ -270,25 +306,47 @@ public class LinkedBTree {
 	
 	public void print() {
 		
+		int level = 1;
+		
 		LinkedList<Integer> printList = new LinkedList<Integer>();
+		
+		LinkedList<Integer> nextList = new LinkedList<Integer>();
 		
 		printList.insertLast(_Root.getValue());
 		
 		while (!printList.isEmpty()) {
 			
-			LinkedBTreeNode printNode = readNode(printList.remove(printList.first()));
-			
-			for (int i = 0; i < printNode.keys().length; i ++) {
+			System.out.print(level + ": ");
+		
+			while (!printList.isEmpty()) {
 				
-				System.out.print(printNode.key(i));
+				int offset = printList.remove(printList.first());
+				
+				LinkedBTreeNode printNode = readNode(offset);
+				
+				for (int i = 0; i < printNode.keys().length - 1; i ++) {
+					
+					System.out.print(printNode.key(i) + ",");
+					
+				}
+				
+				System.out.print(printNode.key(printNode.keys().length - 1) + "/" + offset + " ");
+				
+				for (int i = 0; i < printNode.size() + 1; i ++) {
+					
+					if (printNode.pointer(i) != -1) nextList.insertLast(printNode.pointer(i));
+					
+				}
 				
 			}
 			
-			for (int i = 0; i < printNode.pointers().length; i ++) {
-				
-				if (printNode.pointer(i) != -1) printList.insertLast(printNode.pointer(i));
-				
-			}
+			System.out.print("\n");
+			
+			printList = nextList;
+			
+			nextList = new LinkedList<Integer>();
+			
+			level ++;
 			
 		}
 		
