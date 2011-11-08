@@ -1,3 +1,9 @@
+/*
+ * This class was based off of the text from the CSC316 textbook (2004 Fall Term)
+ * 
+ * Goodrich, Michael T., and Roberto Tamassia. Data Structures and Algorithms in Java. 4th. Print.
+ */
+
 import java.io.IOException;
 
 import java.io.RandomAccessFile;
@@ -6,13 +12,13 @@ public class LinkedBinaryTreeNode<E> implements BinaryTreePosition<E> {
 
 	private E _Element;
 	
-	private long _Offset;
+	private int _Offset;
 	
 	private RandomAccessFile _File;
 
 	@SuppressWarnings("unchecked")
 	
-	public LinkedBinaryTreeNode(long offset, RandomAccessFile file) {
+	public LinkedBinaryTreeNode(int offset, RandomAccessFile file) {
 		
 		try {
 			
@@ -40,7 +46,7 @@ public class LinkedBinaryTreeNode<E> implements BinaryTreePosition<E> {
 		
 			_File = file;
 			
-			_Offset = _File.length();
+			_Offset = (int) _File.length();
 		
 		} catch(IOException e) {
 			
@@ -58,7 +64,7 @@ public class LinkedBinaryTreeNode<E> implements BinaryTreePosition<E> {
 	
 	@Override
 	
-	public long getOffset() {
+	public int getOffset() {
 
 		return _Offset;
 		
@@ -98,7 +104,7 @@ public class LinkedBinaryTreeNode<E> implements BinaryTreePosition<E> {
 		
 			_File.seek(_Offset + 4);
 			
-			long left = _File.readLong();
+			int left = _File.readInt();
 			
 			if (left == -1) return null;
 			
@@ -122,7 +128,7 @@ public class LinkedBinaryTreeNode<E> implements BinaryTreePosition<E> {
 			
 			if (left == null) _File.writeLong(-1);
 			
-			else _File.writeLong(left.getOffset());
+			else _File.writeInt(left.getOffset());
 		
 		} catch(IOException e) {
 			
@@ -136,9 +142,9 @@ public class LinkedBinaryTreeNode<E> implements BinaryTreePosition<E> {
 		
 		try {
 		
-			_File.seek(_Offset + 12);
+			_File.seek(_Offset + 8);
 			
-			long right = _File.readLong();
+			int right = _File.readInt();
 			
 			if (right == -1) return null;
 			
@@ -158,11 +164,11 @@ public class LinkedBinaryTreeNode<E> implements BinaryTreePosition<E> {
 		
 		try {
 			
-			_File.seek(_Offset + 12);
+			_File.seek(_Offset + 8);
 			
-			if (right == null) _File.writeLong(-1);
+			if (right == null) _File.writeInt(-1);
 			
-			else _File.writeLong(right.getOffset());
+			else _File.writeInt(right.getOffset());
 		
 		} catch(IOException e) {
 			

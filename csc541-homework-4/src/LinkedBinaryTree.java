@@ -1,3 +1,8 @@
+/*
+ * This class was based off of the text from the CSC316 textbook (2004 Fall Term)
+ * 
+ * Goodrich, Michael T., and Roberto Tamassia. Data Structures and Algorithms in Java. 4th. Print.
+ */
 
 import java.io.RandomAccessFile;
 
@@ -303,6 +308,8 @@ public class LinkedBinaryTree<E> implements BinaryTree<E> {
 	
 	public void print() {
 		
+		System.out.println();
+		
 		int level = 1;
 		
 		LinkedList<Position<E>> currentList = new LinkedList<Position<E>>();
@@ -323,11 +330,11 @@ public class LinkedBinaryTree<E> implements BinaryTree<E> {
 				
 				if (hasLeft(node)) 
 					
-					if (isInternal(node.getLeft())) nextList.insertLast(node.getLeft());
+					nextList.insertLast(node.getLeft());
 				
 				if (hasRight(node))
 					
-					if (isInternal(node.getRight())) nextList.insertLast(node.getRight());
+					nextList.insertLast(node.getRight());
 				
 			}
 			
@@ -338,6 +345,8 @@ public class LinkedBinaryTree<E> implements BinaryTree<E> {
 			level ++;
 			
 		}
+		
+		System.out.print("\n");
 		
 	}
 

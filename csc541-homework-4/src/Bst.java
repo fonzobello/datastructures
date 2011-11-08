@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 
 import java.io.IOException;
 
@@ -22,16 +24,22 @@ public class Bst {
 		RandomAccessFile myFile = new RandomAccessFile(newFile, "rw");
 
 		LinkedBinarySearchTree<Integer, Integer> myBinarySearchTree =  new LinkedBinarySearchTree<Integer, Integer>(myFile);
-		
-		myBinarySearchTree.insert(25, 25);
-		
-		myBinarySearchTree.insert(15, 15);
-		
-		myBinarySearchTree.insert(32, 32);
-		
-		myBinarySearchTree.insert(18, 18);
-		
-		myBinarySearchTree.print();
+
+		BufferedReader cin = new BufferedReader(new InputStreamReader(System.in));
+
+		String command;
+
+		while (!(command = cin.readLine()).equals("end")) {
+			
+			String[] arguments = command.split(" ");
+			
+			if (arguments[0].equals("add")) myBinarySearchTree.insert(Integer.parseInt(arguments[1]), Integer.parseInt(arguments[1]));
+				
+			else if (arguments[0].equals("find")) myBinarySearchTree.find(Integer.parseInt(arguments[1]));
+				
+			else if (arguments[0].equals("print")) myBinarySearchTree.print();
+			
+		}
 
 	}
 	

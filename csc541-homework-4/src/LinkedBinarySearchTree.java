@@ -1,6 +1,16 @@
+/*
+ * This class was based off of the text from the CSC316 textbook (2004 Fall Term)
+ * 
+ * Goodrich, Michael T., and Roberto Tamassia. Data Structures and Algorithms in Java. 4th. Print.
+ */
+
 import java.io.RandomAccessFile;
 
+import java.text.DecimalFormat;
+
 import java.util.Comparator;
+
+import java.util.Date;
 
 public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> implements Dictionary<K,V> {
 
@@ -10,13 +20,17 @@ public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> im
 
 	protected int _NumberEntries = 0;
 
+	private long _ElapsedTime;
+
+	private int _TotalFinds;
+
 	public LinkedBinarySearchTree(RandomAccessFile file)  { 
 
 		super(file);
 		
 		setComparator(new DefaultComparator<K>()); 
 
-		addRoot(null);
+		//addRoot(null);
 
 	}
 
@@ -26,7 +40,7 @@ public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> im
 		
 		setComparator(comparator); 
 
-		addRoot(null);
+		//addRoot(null);
 
 	}
 	
@@ -104,11 +118,15 @@ public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> im
 
 	protected Entry<K,V> insertAtExternal(Position<Entry<K,V>> position, Entry<K,V> entry) {
 
-		expandExternal(position, null, null);
+		//expandExternal(position, null, null);
 
-		replace(position, entry);
+		K currentKey = key(position);
 
-		setNumberEntries(numberEntries() + 1);
+		int comparison = comparator().compare(entry.getKey(), currentKey);
+
+		if (comparison < 0) insertLeft(position, entry);
+
+		else if (comparison > 0) insertRight(position, entry);
 
 		return entry;
 
@@ -124,9 +142,20 @@ public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> im
 
 			int comparison = comparator().compare(key, currentKey);
 
-			if (comparison < 0) return treeSearch(key, left(position));
+			if (comparison < 0) {
+				
+				if (hasLeft(position)) return treeSearch(key, left(position));
+				
+				else return position;
+				
+			}
 
-			else if (comparison > 0) return treeSearch(key, right(position));
+			else if (comparison > 0) {
+				
+				if (hasRight(position)) return treeSearch(key, right(position));
+				
+				else return position;
+			}
 
 			return position;
 
@@ -166,14 +195,29 @@ public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> im
 
 	public Entry<K,V> find(K key) throws InvalidKeyException {
 
+		long lStartTime = new Date().getTime();
+		
 		checkKey(key);
 
 		Position<Entry<K,V>> currentPosition = treeSearch(key, root());
 
 		setActionPosition(currentPosition);
+		
+		long lEndTime = new Date().getTime();
+	 	 
+		_ElapsedTime = _ElapsedTime + (lEndTime - lStartTime);
+		
+		_TotalFinds ++;
 
-		if (isInternal(currentPosition)) return entry(currentPosition);
+		if (currentPosition.element().getKey().equals(key)) {
+			
+			System.out.println("Record " + key + " exists.");
+			
+			return entry(currentPosition);
+		}
 
+		System.out.println("Record " + key + " does not exist.");
+		
 		return null;
 
 	}
@@ -193,10 +237,22 @@ public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> im
 	public Entry<K,V> insert(K key, V value) throws InvalidKeyException {
 
 		checkKey(key);
+		
+		if (isEmpty()) {
+			
+			Entry<K,V> toReturn = new LinkedBinarySearchTreeEntry<K,V>(key, value);
+			
+			addRoot(toReturn);
+			
+			_NumberEntries++;
+
+			return toReturn;
+			
+		}
 
 		Position<Entry<K,V>> insertPosition = treeSearch(key, root());
 
-		while (!isExternal(insertPosition)) insertPosition = treeSearch(key, left(insertPosition));
+		//while (!isExternal(insertPosition)) insertPosition = treeSearch(key, left(insertPosition));
 
 		setActionPosition(insertPosition);
 
@@ -216,4 +272,16 @@ public class LinkedBinarySearchTree<K,V> extends LinkedBinaryTree<Entry<K,V>> im
 		
 	}
 	
+	public void print() {
+		
+		super.print();
+		
+		DecimalFormat myFormatter = new DecimalFormat("0.000000");
+		
+		System.out.println("Sum: " + myFormatter.format(_ElapsedTime * 0.001) );
+		
+		System.out.println("Avg: " + myFormatter.format(((_ElapsedTime * 0.001) / _TotalFinds)));
+		
+	}
+
 }
