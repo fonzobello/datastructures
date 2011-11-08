@@ -1,1 +1,0 @@
-java Bst %1
