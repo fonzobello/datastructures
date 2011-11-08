@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.Console;
+import java.io.InputStreamReader;
 
 import java.io.File;
 
@@ -24,32 +26,22 @@ public class Btree {
 
 		LinkedBTree myBTree =  new LinkedBTree(myFile, 33);
 
-		Console c = System.console();
-        
-		if (c == null) {
-           
-			System.err.println("No console.");
-            
-			System.exit(1);
-        
-		}
+		BufferedReader cin = new BufferedReader(new InputStreamReader(System.in));
 
 		String command;
-		
-		while ((command = c.readLine()) != "end") {
+
+		while (!(command = cin.readLine()).equals("end")) {
 			
 			String[] arguments = command.split(" ");
 			
 			if (arguments[0].equals("add")) myBTree.insert(Integer.parseInt(arguments[1]));
-			
-			else if (arguments[0].equals("find")) myBTree.;
-			
-			else if (arguments[0].equals("print")) ;
+				
+			else if (arguments[0].equals("find")) myBTree.retrieve(Integer.parseInt(arguments[1]));
+				
+			else if (arguments[0].equals("print")) myBTree.print();
 			
 		}
-		
-        
-		
+
 	}
 	
 }

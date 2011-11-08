@@ -1,8 +1,17 @@
-// http://cis.stvincent.edu/carlsond/swdesign/btree/btree.cpp
+/*
+ * References:
+ * 
+ * Tharp, Alan L. File Organization and Processing. 1st. New York, Chichester, Brisbane, Toronto, Singapore: John Wiley & Sons, 1988. 221-232. Print.
+ * 
+ * Carlson, David. Software Design Using C . Web. <http://cis.stvincent.edu/carlsond/swdesign/swd.html>.
+ */
 
 import java.io.IOException;
 
 import java.io.RandomAccessFile;
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.Date;
 
 public class LinkedBTree {
 	
@@ -23,6 +32,10 @@ public class LinkedBTree {
 	private MyInteger _Root;
 	
 	private LinkedBTreeNode _CurrentNode;
+	
+	private long _ElapsedTime = 0;
+	
+	private int _TotalFinds = 0;
 	
 	public LinkedBTree(RandomAccessFile file, Integer order) {
 
@@ -64,21 +77,53 @@ public class LinkedBTree {
 		
 	}
 	
-	public boolean treeSearch(Integer key) {
+	public void retrieve(Integer key) {
+
+		long lStartTime = new Date().getTime();
 		
-		_CurrentNode = readNode(0);
+		long lEndTime;
+		
+		if (treeSearch(key, _Root.getValue())) {
+			
+			lEndTime = new Date().getTime();
+			
+			System.out.println("Record " + key + " exists.");
+		}
+		
+		else {
+			
+			lEndTime = new Date().getTime();
+			
+			System.out.println("Record " + key + " does not exist.");
+		}
+
+		_ElapsedTime = _ElapsedTime + (lEndTime - lStartTime);
+		
+		_TotalFinds ++;
+		
+	}
+	
+	public boolean treeSearch(Integer key, Integer location) {
+		
+		_CurrentNode = readNode(location);
 		
 		Integer keys[] = _CurrentNode.keys();
 		
+		Integer pointers[] = _CurrentNode.pointers();
+		
+		if (searchNode(key, new MyInteger(0))) return true;
+		
 		for (int i = 0; i < keys.length; i ++) {
 			
-			if (keys[i] < key) goLeft();
+			if ((key < keys[i]) && (pointers[i] != -1)) return treeSearch(key, pointers[i]);
 			
-			else if (keys[i] = key) return true;
+			else if (key == keys[i]) return true;
 			
-			else if (keys[i] > key)
+			else if ((key > keys[i]) && (i == _CurrentNode.size() - 1) && (pointers[i+1] != -1)) return treeSearch(key, pointers[i+1]);
 			
 		}
+		
+		return false;
 		
 	}
 	
@@ -93,8 +138,8 @@ public class LinkedBTree {
 			location.setValue(_CurrentNode.size() - 1);
 
 			while ((key < _CurrentNode.key(location.getValue())) && (location.getValue() > 0)) location.setValue(location.getValue() - 1);
-
-			if (key == _CurrentNode.key(location.getValue())) found = true;
+			
+			if (key.equals(_CurrentNode.key(location.getValue()))) found = true;
 
 		}
 
@@ -306,6 +351,8 @@ public class LinkedBTree {
 	
 	public void print() {
 		
+		System.out.println("");
+		
 		int level = 1;
 		
 		LinkedList<Integer> printList = new LinkedList<Integer>();
@@ -324,13 +371,19 @@ public class LinkedBTree {
 				
 				LinkedBTreeNode printNode = readNode(offset);
 				
-				for (int i = 0; i < printNode.keys().length - 1; i ++) {
+				for (int i = 0; i < printNode.keys().length; i ++) {
 					
-					System.out.print(printNode.key(i) + ",");
+					if (!printNode.key(i).equals(-1)) {
+						
+						if (i != 0) System.out.print(",");
+						
+						System.out.print(printNode.key(i));
+						
+					}
 					
 				}
-				
-				System.out.print(printNode.key(printNode.keys().length - 1) + "/" + offset + " ");
+						
+				System.out.print("/" + (offset -1) * _NodeSize + " ");
 				
 				for (int i = 0; i < printNode.size() + 1; i ++) {
 					
@@ -340,7 +393,7 @@ public class LinkedBTree {
 				
 			}
 			
-			System.out.print("\n");
+			System.out.println("");
 			
 			printList = nextList;
 			
@@ -349,6 +402,14 @@ public class LinkedBTree {
 			level ++;
 			
 		}
+		
+		System.out.println("");
+		
+		DecimalFormat myFormatter = new DecimalFormat("0.000000");
+		
+		System.out.println("Sum: " + myFormatter.format(_ElapsedTime * 0.001) );
+		
+		System.out.println("Avg: " + myFormatter.format(((_ElapsedTime * 0.001) / _TotalFinds)));
 		
 	}
 	
