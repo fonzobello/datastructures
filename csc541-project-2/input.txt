@@ -1,0 +1,10 @@
+Application_1;Serverno1_in_tier_1;Serverno3_in_tier_2;Serverno6_in_tier3  
+Application_2;Serverno2_in_tier_1; Serverno2_in_tier_2;Serverno10_in_tier3  
+Application_1;Serverno2_in_tier_1;Serverno4_in_tier_2;Serverno8_in_tier3 
+Application_2;Serverno6_in_tier_1; Serverno2_in_tier_2;Serverno8_in_tier3  
+Application_2;Serverno7_in_tier_1; Serverno12_in_tier_2;Serverno8_in_tier3  
+Application_1;Serverno3_in_tier_1;Serverno2_in_tier_2;Serverno8_in_tier3 
+Application_1;Serverno19_in_tier_1;Serverno4_in_tier_2;Serverno8_in_tier3 
+Application_5;Serverno339_in_tier_1; Serverno29_in_tier_2;Serverno2_in_tier3  
+Application_12;Serverno3_in_tier_1; Serverno1_in_tier_2;Serverno4_in_tier3  
+Application_1;Serverno1_in_tier_1;Serverno3_in_tier_2;Serverno6_in_tier3 
