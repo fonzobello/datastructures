@@ -5,6 +5,10 @@ public class HashTableMap {
 	
 	private static final int TBL_SIZE = 1001;
 	
+	private static final int SIZEOF_INDEX = 20;
+	
+	private static final int SIZEOF_DATA = 30;
+	
 	private RandomAccessFile _IndexFile;
 	
 	private RandomAccessFile _DataFile;
@@ -15,11 +19,26 @@ public class HashTableMap {
 		
 		_DataFile = dataFile;
 		
+		for (int i = 0; i < TBL_SIZE; i++) {
+			
+			IndexEntry indexEntry = new IndexEntry(-1, -1, -1);
+			
+			try {
+			
+				indexEntry.write(_IndexFile, _IndexFile.length());
+
+			} catch (IOException e) {
+
+				e.printStackTrace();
+			}
+			
+		}
+		
 	}
 	
 	private int hash(int key) {
 		
-		return (key % TBL_SIZE);
+		return (key % TBL_SIZE) * SIZEOF_INDEX;
 		
 	}
 	
@@ -27,24 +46,178 @@ public class HashTableMap {
 		
 		try {
 		
-			int position = (int) _DataFile.length();
+			long dataPosition = _DataFile.length();
 			
-			entry.write(_DataFile, position);
+			entry.write(_DataFile, dataPosition);
 			
+			IndexEntry indexEntry = new IndexEntry(_IndexFile, hash(entry.getTransactionNumber()));
 			
+			if (indexEntry.getKey() == -1) {
+				
+				// Empty Bucket
+				
+				indexEntry.setKey(entry.getTransactionNumber());
+				
+				indexEntry.setRecord(dataPosition);
+				
+				indexEntry.write(_IndexFile, hash(entry.getTransactionNumber()));
+				
+			} else {
+				
+				// Not Empty
+				
+				long indexPosition = hash(entry.getTransactionNumber());
+				
+				while (indexEntry.getNext() != -1) {
+					
+					if (indexEntry.getKey() == entry.getTransactionNumber()) {
+						
+						System.out.println("Record " + entry.getTransactionNumber() + " is a duplicate.");
+						
+						return;
+						
+					}
+					
+					indexPosition = indexEntry.getNext();
+					
+					indexEntry = new IndexEntry(_IndexFile, indexEntry.getNext());
+					
+				}
+				
+				if (indexEntry.getKey() == entry.getTransactionNumber()) {
+					
+					System.out.println("Record " + entry.getTransactionNumber() + " is a duplicate.");
+					
+					return;
+					
+				}
+				
+				indexEntry.setNext(_IndexFile.length());
+				
+				indexEntry.write(_IndexFile, indexPosition);
+				
+				IndexEntry newEntry = new IndexEntry(entry.getTransactionNumber(), dataPosition, -1);
+				
+				newEntry.write(_IndexFile, _IndexFile.length());
+				
+			}
 					
 		} catch(IOException e) {}
 		
 	}
 	
-	public DataEntry find(int key) {
+	public void find(int key) {
+			
+		IndexEntry indexEntry = new IndexEntry(_IndexFile, hash(key));
 		
-		return null;
+		if (indexEntry.getKey() == -1) {
+			
+			// Not Found
+			
+			System.out.println("Record " + key + " does not exist.");
+			
+			return;
+			
+		} else {
+			
+			// Search the Chain
+			
+			while (indexEntry.getNext() != -1) {
+
+				if (indexEntry.getKey() == key) {
+					
+					DataEntry dataEntry= new DataEntry(_DataFile, indexEntry.getRecord());
+					
+					System.out.println(dataEntry);
+					
+					return;
+					
+				}
+				
+				indexEntry = new IndexEntry(_IndexFile, indexEntry.getNext());
+				
+			}
+			
+			if (indexEntry.getKey() == key) {
+				
+				DataEntry dataEntry= new DataEntry(_DataFile, indexEntry.getRecord());
+				
+				System.out.println(dataEntry);
+				
+				return;
+				
+			}
+			
+		}
+		
+		System.out.println("Record " + key + " does not exist.");
 		
 	}
 	
-	public void delete(int key) {}
+	public void delete(int key) {
+		
+		long position = hash(key);
+		
+		IndexEntry previousEntry = null;
+		
+		IndexEntry currentEntry = new IndexEntry(_IndexFile, position);
+		
+		if (currentEntry.getKey() == -1) {
+			
+			// Not Found
+			
+		} else {
+			
+			// Search the Chain
+			
+			while (currentEntry.getNext() != -1) {
+				
+				previousEntry = currentEntry;
+				
+				currentEntry = new IndexEntry(_IndexFile, currentEntry.getNext());
+
+				if (currentEntry.getKey() == key) {
+					
+					previousEntry.setNext(currentEntry.getNext());
+					
+					previousEntry.write(_IndexFile, position);
+					
+				}
+				
+				position = currentEntry.getNext();
+				
+			}
+			
+		}
+		
+		// Not Found
+		
+	}
 	
-	public void print() {}
+	public void print() {
+		
+		for (int i = 0; i < TBL_SIZE; i++) {
+			
+			System.out.print(i + ": ");
+			
+			IndexEntry indexEntry = new IndexEntry(-1, -1, -1);
+		
+			indexEntry.read(_IndexFile, i * SIZEOF_INDEX);
+			
+			System.out.print(indexEntry);
+			
+			while (indexEntry.getNext() != -1) {
+				
+				indexEntry = new IndexEntry(_IndexFile, indexEntry.getNext());
+
+				System.out.print(" " + indexEntry);
+				
+			}
+			
+			System.out.println();
+			
+		}
+	
+	}
 	
 }

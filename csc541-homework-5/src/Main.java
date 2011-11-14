@@ -10,7 +10,7 @@ public class Main {
 		
 		File indexFile = new File(args[0]);
 		
-		File dataFile = new File(args[0]);
+		File dataFile = new File(args[1]);
 		
 		if (indexFile.exists()) indexFile.delete();
 		
@@ -48,11 +48,13 @@ public class Main {
 					
 					Integer.parseInt(command[8])));
 			
-			if (command[0].equals("find")) ;
+			if (command[0].equals("find")) myHashTableMap.find(Integer.parseInt(command[1]));
 			
-			if (command[0].equals("delete")) ;
+			if (command[0].equals("delete")) myHashTableMap.delete(Integer.parseInt(command[1]));
 			
-			if (command[0].equals("print")) ;
+			if (command[0].equals("print")) myHashTableMap.print();
+			
+			if (command[0].equals("end")) return;
 			
 		}
 		
