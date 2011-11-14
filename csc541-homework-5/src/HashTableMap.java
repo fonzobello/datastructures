@@ -156,41 +156,57 @@ public class HashTableMap {
 	
 	public void delete(int key) {
 		
-		long position = hash(key);
+		long previousIndex = -1;
 		
-		IndexEntry previousEntry = null;
+		long currentIndex = hash(key);
 		
-		IndexEntry currentEntry = new IndexEntry(_IndexFile, position);
+		IndexEntry indexEntry = new IndexEntry(_IndexFile, currentIndex);
 		
-		if (currentEntry.getKey() == -1) {
-			
-			// Not Found
-			
-		} else {
-			
-			// Search the Chain
-			
-			while (currentEntry.getNext() != -1) {
-				
-				previousEntry = currentEntry;
-				
-				currentEntry = new IndexEntry(_IndexFile, currentEntry.getNext());
-
-				if (currentEntry.getKey() == key) {
+		while (true) {
 					
-					previousEntry.setNext(currentEntry.getNext());
+			if (indexEntry.getKey() == key) {
+			
+				if (previousIndex != -1) {
 					
-					previousEntry.write(_IndexFile, position);
+					IndexEntry previousEntry = new IndexEntry(_IndexFile, previousIndex);
+					
+					previousEntry.setNext(indexEntry.getNext());
+					
+					previousEntry.write(_IndexFile, previousIndex);
 					
 				}
 				
-				position = currentEntry.getNext();
+				indexEntry.setKey(-1);
+				
+				indexEntry.setRecord(-1);
+				
+				indexEntry.setNext(-1);
+				
+				indexEntry.write(_IndexFile, currentIndex);
+				
+				return;
+				
+			} else {
+					
+				if (indexEntry.getNext() != -1) {
+					
+						previousIndex = currentIndex;
+					
+						currentIndex = indexEntry.getNext();
+						
+						indexEntry = new IndexEntry(_IndexFile, currentIndex);
+						
+				} else {
+					
+					break;
+					
+				}
 				
 			}
 			
 		}
 		
-		// Not Found
+		System.out.println("Record " + key + " does not exist.");
 		
 	}
 	
@@ -204,13 +220,13 @@ public class HashTableMap {
 		
 			indexEntry.read(_IndexFile, i * SIZEOF_INDEX);
 			
-			System.out.print(indexEntry);
+			if (indexEntry.getKey() != -1) System.out.print(indexEntry);
 			
 			while (indexEntry.getNext() != -1) {
 				
 				indexEntry = new IndexEntry(_IndexFile, indexEntry.getNext());
 
-				System.out.print(" " + indexEntry);
+				if (indexEntry.getKey() != -1) System.out.print(" " + indexEntry);
 				
 			}
 			
