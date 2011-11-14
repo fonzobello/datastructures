@@ -102,4 +102,10 @@ public class IndexEntry {
 	
 	}
 	
+	public String toString() {
+		
+		return getKey() + "/" + getRecord();
+		
+	}
+	
 }
