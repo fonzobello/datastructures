@@ -44,65 +44,79 @@ public class HashTableMap {
 	
 	public void add(DataEntry entry) {
 		
-		try {
+		if (entry.getTransactionNumber() == 54502) {
+			
+			System.out.println("");
+			
+		}
 		
-			long dataPosition = _DataFile.length();
+		try {
 			
-			entry.write(_DataFile, dataPosition);
+			long record = _DataFile.length();
 			
-			IndexEntry indexEntry = new IndexEntry(_IndexFile, hash(entry.getTransactionNumber()));
+			entry.write(_DataFile, record);
 			
-			if (indexEntry.getKey() == -1) {
-				
-				// Empty Bucket
-				
-				indexEntry.setKey(entry.getTransactionNumber());
-				
-				indexEntry.setRecord(dataPosition);
-				
-				indexEntry.write(_IndexFile, hash(entry.getTransactionNumber()));
-				
-			} else {
-				
-				// Not Empty
-				
-				long indexPosition = hash(entry.getTransactionNumber());
-				
-				while (indexEntry.getNext() != -1) {
-					
-					if (indexEntry.getKey() == entry.getTransactionNumber()) {
+			long currentIndex = hash(entry.getTransactionNumber());
+			
+			IndexEntry indexEntry = new IndexEntry(_IndexFile, currentIndex);
+			
+			while (true) {
 						
-						System.out.println("Record " + entry.getTransactionNumber() + " is a duplicate.");
-						
-						return;
-						
-					}
-					
-					indexPosition = indexEntry.getNext();
-					
-					indexEntry = new IndexEntry(_IndexFile, indexEntry.getNext());
-					
-				}
-				
 				if (indexEntry.getKey() == entry.getTransactionNumber()) {
-					
+				
 					System.out.println("Record " + entry.getTransactionNumber() + " is a duplicate.");
 					
 					return;
 					
+				} else {
+						
+					if (indexEntry.getNext() != -1) {
+						
+							currentIndex = indexEntry.getNext();
+							
+							indexEntry = new IndexEntry(_IndexFile, currentIndex);
+							
+					} else {
+						
+						if (indexEntry.getKey() == -1) {
+							
+							indexEntry.setKey(entry.getTransactionNumber());
+							
+							indexEntry.setRecord(record);
+							
+							indexEntry.setNext(-1);
+							
+							indexEntry.write(_IndexFile, currentIndex);
+							
+							return;
+							
+						} else {
+							
+							indexEntry.setNext(_IndexFile.length());
+							
+							indexEntry.write(_IndexFile, currentIndex);
+							
+							IndexEntry newEntry = new IndexEntry(entry.getTransactionNumber(), record, -1);
+							
+							newEntry.write(_IndexFile, _IndexFile.length());
+							
+							return;
+							
+						}
+						
+
+						
+					}
+					
 				}
-				
-				indexEntry.setNext(_IndexFile.length());
-				
-				indexEntry.write(_IndexFile, indexPosition);
-				
-				IndexEntry newEntry = new IndexEntry(entry.getTransactionNumber(), dataPosition, -1);
-				
-				newEntry.write(_IndexFile, _IndexFile.length());
 				
 			}
 					
-		} catch(IOException e) {}
+		} catch(IOException e) {
+			
+			e.printStackTrace();
+			
+		}
 		
 	}
 	
@@ -173,6 +187,20 @@ public class HashTableMap {
 					previousEntry.setNext(indexEntry.getNext());
 					
 					previousEntry.write(_IndexFile, previousIndex);
+					
+				} else {
+				
+					//TODO: move second record to front
+					
+					if (indexEntry.getNext() != -1) {
+						
+						IndexEntry nextEntry = new IndexEntry(_IndexFile, indexEntry.getNext());
+						
+						nextEntry.write(_IndexFile, currentIndex);
+						
+						return;
+						
+					}
 					
 				}
 				
