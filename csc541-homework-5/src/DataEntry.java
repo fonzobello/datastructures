@@ -164,6 +164,8 @@ public class DataEntry {
 			
 			setYear(file.readInt());
 			
+			file.readChar(); // Padding
+			
 		} catch(IOException e) {
 			
 			e.printStackTrace();
