@@ -30,7 +30,23 @@ public class Main {
 			
 			command = cin.readLine().split("\\s");
 			
-			if (command[0].equals("add")) ;
+			if (command[0].equals("add")) myHashTableMap.add(new DataEntry(
+					
+					Integer.parseInt(command[1]), 
+					
+					Float.parseFloat(command[2]), 
+					
+					command[3].charAt(0), 
+					
+					Integer.parseInt(command[4]), 
+					
+					Integer.parseInt(command[5]), 
+					
+					Integer.parseInt(command[6]), 
+					
+					Integer.parseInt(command[7]), 
+					
+					Integer.parseInt(command[8])));
 			
 			if (command[0].equals("find")) ;
 			
