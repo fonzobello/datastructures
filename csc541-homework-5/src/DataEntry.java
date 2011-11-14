@@ -202,4 +202,10 @@ public class DataEntry {
 	
 	}
 	
+	public String toString() {
+		
+		return getTransactionNumber() + " " + getAmount() + " " + getTransactionType() + " " + getAccount() + " " + getHour() + " " + getMinute() + " " + getDay() + " " + getYear();
+		
+	}
+	
 }
