@@ -10,7 +10,7 @@
     
     <View android:layout_height="2dip" android:background="#FF909090" android:layout_width="fill_parent" />
 
-    <TableLayout android:layout_gravity="fill_horizontal" android:layout_width="fill_parent" android:id="@+id/AnswersTable" android:layout_height="50px" android:padding="5px">
+    <TableLayout android:layout_gravity="fill_horizontal" android:layout_width="fill_parent" android:id="@+id/AnswersTable" android:layout_height="65px" android:padding="5px">
         <TableRow android:layout_height="wrap_content" android:layout_gravity="fill_horizontal" android:layout_width="fill_parent">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Your Answer:" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=""
@@ -25,7 +25,7 @@
 
     <View android:layout_height="2dip" android:background="#FF909090" android:layout_width="fill_parent" />
 
-    <TableLayout android:id="@+id/StatisticsTable" android:layout_gravity="fill_horizontal" android:layout_width="fill_parent" android:layout_height="50px" android:padding="5px">
+    <TableLayout android:id="@+id/StatisticsTable" android:layout_gravity="fill_horizontal" android:layout_width="fill_parent" android:layout_height="65px" android:padding="5px">
         <TableRow android:layout_height="wrap_content" android:layout_gravity="fill_horizontal" android:layout_width="fill_parent">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="National Average:" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=""
