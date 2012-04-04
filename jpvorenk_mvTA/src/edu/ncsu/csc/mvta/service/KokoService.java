@@ -16,22 +16,22 @@ import com.derekandbritt.koko.emotion.EmotionType;
 import com.derekandbritt.koko.emotion.EmotionVector;
 import com.derekandbritt.koko.events.DataInstance;
 
+import edu.ncsu.csc.mvta.data.Question;
+
 public class KokoService {
 
+	public KokoEndpoint koko;
+	
     public KokoService() {
         
         try {
         	
             // create the endpoint for your application (appID, emotionTypes, dataDefinitions)
-            KokoEndpoint koko = createKokoEndpoint();
+            koko = createKokoEndpoint();
             
             // register a user with that application (username, firstName, lastName)
             // NOTE: all names must not include spaces
             koko.initialize("testUser", "test", "user");
-            
-            // inform Koko about how the user is feeling
-            learnEvent(koko);
-            printEmotionVector(koko.getCurrentEmotion());
             
             // inform Koko about what is happening to the user (no emotions)
             sendEvent(koko);
@@ -64,13 +64,11 @@ public class KokoService {
         emotionTypes.add(EmotionType.LIKE);
         emotionTypes.add(EmotionType.DISLIKE);
         
-        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("weather", "cold,hot,foggy"));
-        dataDefinitions.add(new DataDefinition("highScore", DataType.DOUBLE));
-        dataDefinitions.add(new DataDefinition("attemptsToday", DataType.INT));
-        dataDefinitions.add(new DataDefinition("timeToRespond", DataType.LONG));
-        dataDefinitions.add(new DataDefinition("birthday", DataType.DATE));
+        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("difficulty", "EASY,MEDIUM,HARD"));
+        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("gradeLevel", "GRADE_08,GRADE_12"));
+        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("contentArea", "PROPERTIES_AND_OPERATIONS,GEOMETRY,ANALYSIS_AND_PROBABILITY,ALGEBRA"));
         
-        return new KokoEndpoint("vTA_Test_v01", emotionTypes, dataDefinitions);
+        return new KokoEndpoint("vTA_jpvorenk_v01", emotionTypes, dataDefinitions);
     }
     
     /**
@@ -83,29 +81,9 @@ public class KokoService {
      * @param koko the endpoint for your application
      * @throws JSONEndpointException
      */
-    private void learnEvent(KokoEndpoint koko) throws JSONEndpointException {
+    private void learnEvent(ArrayList<DataInstance> instances) throws JSONEndpointException {
         
-        ArrayList<DataInstance> instances = new ArrayList<DataInstance>();
         
-        for(DataDefinition definition : koko.getDataDefinitions()) {
-            Serializable value = null;
-        
-            if(definition.getName().equals("weather")) {
-                value = "hot";
-            } else if(definition.getName().equals("highScore")) {
-                value = 93.24;
-            } else if(definition.getName().equals("attemptsToday")) {
-                value = 3;
-            } else if(definition.getName().equals("timeToRespond")) {
-                value = (long)600000;
-            } else if(definition.getName().equals("birthday")) {
-                value = new Date();
-            } else {
-                throw new RuntimeException("Unknown data definition");
-            }
-        
-            instances.add(new DataInstance(definition, value));
-        }    
         
         // leave the second param null if the user has not provided any data
         koko.sendEvent(instances, EmotionType.LIKE);

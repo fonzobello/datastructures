@@ -1,6 +1,12 @@
 package edu.ncsu.csc.mvta.service;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import com.derekandbritt.koko.configuration.DataDefinition;
+import com.derekandbritt.koko.events.DataInstance;
 
 import android.content.Context;
 import android.location.LocationManager;
@@ -26,13 +32,15 @@ public class VirtualTA {
 
     private ExamService examService;
     private QuestionService questionService;
+    private KokoService kokoService;
     private VTAgent vtAgent;
     
     private ProbabilisticLookup probabilisticLookup;
     
-    public VirtualTA(ExamService examService, QuestionService questionService) {
+    public VirtualTA(ExamService examService, QuestionService questionService, KokoService kokoService) {
         this.examService = examService;
         this.questionService = questionService;
+        this.kokoService = kokoService;
         this.probabilisticLookup = new ProbabilisticLookup();
     }
     
@@ -83,7 +91,11 @@ public class VirtualTA {
     	 * To avoid infinite loops, max out the number of times a new question is generated to 10
     	 */
     	
-        return questionService.randomQuestion(probabilisticLookup.getGrade(), probabilisticLookup.getDifficulty(), probabilisticLookup.getContentArea());
+        Question toReturn = questionService.randomQuestion(probabilisticLookup.getGrade(), probabilisticLookup.getDifficulty(), probabilisticLookup.getContentArea());
+        
+        
+        
+        return toReturn;
     }
     
     /**
@@ -118,5 +130,27 @@ public class VirtualTA {
      */
     public void receiveFeedback(View parentView) {
         
+    	ArrayList<DataInstance> instances = new ArrayList<DataInstance>();
+    	
+    	for(DataDefinition definition : kokoService.koko.getDataDefinitions()) {
+            Serializable value = null;
+        
+            if(definition.getName().equals("weather")) {
+                value = "hot";
+            } else if(definition.getName().equals("highScore")) {
+                value = 93.24;
+            } else if(definition.getName().equals("attemptsToday")) {
+                value = 3;
+            } else if(definition.getName().equals("timeToRespond")) {
+                value = (long)600000;
+            } else if(definition.getName().equals("birthday")) {
+                value = new Date();
+            } else {
+                throw new RuntimeException("Unknown data definition");
+            }
+        
+            instances.add(new DataInstance(definition, value));
+        }    
+    	
     }
 }

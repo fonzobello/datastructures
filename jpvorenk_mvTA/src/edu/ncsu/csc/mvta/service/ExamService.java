@@ -39,7 +39,8 @@ public class ExamService extends Service {
     private SQLiteDatabase db;
     
     private QuestionService questionService = new QuestionService();
-    private VirtualTA virtualTA = new VirtualTA(this, questionService);
+    private KokoService kokoService = new KokoService();
+    private VirtualTA virtualTA = new VirtualTA(this, questionService, kokoService);
     private VTAgent vtAgetnt ;
 
     
