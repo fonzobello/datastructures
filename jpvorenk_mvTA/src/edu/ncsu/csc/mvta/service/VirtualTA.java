@@ -1,7 +1,12 @@
 package edu.ncsu.csc.mvta.service;
 
+import java.util.List;
+
+import android.content.Context;
+import android.location.LocationManager;
 import android.view.View;
 import edu.ncsu.csc.mvta.data.Answer;
+import edu.ncsu.csc.mvta.data.Exam;
 import edu.ncsu.csc.mvta.data.Question;
 import edu.ncsu.csc.mvta.jade.VTAgent;
 
@@ -23,9 +28,12 @@ public class VirtualTA {
     private QuestionService questionService;
     private VTAgent vtAgent;
     
+    private ProbabilisticLookup probabilisticLookup;
+    
     public VirtualTA(ExamService examService, QuestionService questionService) {
         this.examService = examService;
         this.questionService = questionService;
+        this.probabilisticLookup = new ProbabilisticLookup();
     }
     
     /**
@@ -35,7 +43,47 @@ public class VirtualTA {
      * @return the question selected by the virtual TA
      */
     public Question nextQuestion() {
-        return questionService.randomQuestion();
+    	
+    	/**
+    	 * Category 1: Exam Data
+    	 * 
+    	 * 1) Look at the past three exams
+    	 * 2) If past exams were lacking in one content area, then increase the probability of those questions
+    	 * 3) If past exams were lacking at one grade level, then increase probability of asking question from that grade level
+    	 */
+    	
+    	List<Exam> previousExams = examService.getPreviousExams(3);
+    	
+        for(Exam exam : previousExams) {
+
+       		this.probabilisticLookup.increaseContentArea(examService.getWorstContentArea(exam), 0.10);
+       		
+       		this.probabilisticLookup.increaseGrade(examService.getWorstGrade(exam), 0.10);
+        		
+        }
+    	
+    	/**
+    	 * Category 2: Environmental Data
+    	 * 
+    	 * 1) Determine the geographical location of the user.  Check this location against preset locations for study:
+    	 *    If the user is at a predefined study location, increase the probability of hard questions
+    	 *    If the user is traveling, assume they are bored and give them more challenging questions
+    	 *    If they are not in any of the above situations, assume they are in a distracting environment and give them easy questions
+    	 */
+    	
+        
+        
+    	/**
+    	 * Category 3: Emotional Data
+    	 * 
+    	 * 1) Generate a new question based on categories 1 and 2
+    	 * 2) Ask Koko if the user will become too frustrated, or too bored if we ask the question
+    	 * 3) If the answer is yes, then generate a new question, if not then present the question to the user.
+    	 * 
+    	 * To avoid infinite loops, max out the number of times a new question is generated to 10
+    	 */
+    	
+        return questionService.randomQuestion(probabilisticLookup.getGrade(), probabilisticLookup.getDifficulty(), probabilisticLookup.getContentArea());
     }
     
     /**

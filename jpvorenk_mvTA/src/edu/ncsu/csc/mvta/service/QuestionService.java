@@ -1,6 +1,7 @@
 package edu.ncsu.csc.mvta.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import edu.ncsu.csc.mvta.data.Question;
 import edu.ncsu.csc.mvta.data.Question.ContentArea;
@@ -54,6 +55,7 @@ public class QuestionService {
     }
     
     public Question randomQuestion() {
+
         int position = (int)(Math.random() * questions.size());
         return questions.get(position);
     }
@@ -77,6 +79,23 @@ public class QuestionService {
     /* START STUDENT CODE */
     
     // add any methods you want to retrieve specific types of questions here
+    
+    public Question randomQuestion(Grade grade, Difficulty difficulty, ContentArea contentArea) {
+
+        ArrayList<Question> validQuestions = new ArrayList<Question>();
+        
+        for(Question q : questions) {
+            if(q.gradeLevel == grade && q.difficulty == difficulty && q.contentArea == contentArea)
+                validQuestions.add(q);
+        }
+        
+        if(validQuestions.size() == 0)
+            return null;
+        
+        int position = (int)(Math.random() * validQuestions.size());
+        return validQuestions.get(position);
+        
+    }
     
     /* END STUDENT CODE */
 }

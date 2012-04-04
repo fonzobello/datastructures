@@ -21,6 +21,7 @@ public class KokoService {
     public KokoService() {
         
         try {
+        	
             // create the endpoint for your application (appID, emotionTypes, dataDefinitions)
             KokoEndpoint koko = createKokoEndpoint();
             
@@ -38,8 +39,11 @@ public class KokoService {
             
             // predict how the user would feel if this event occured
             predictEmotion(koko);
+            
         } catch (JSONEndpointException e) {
-            throw new RuntimeException(e);
+            
+        	throw new RuntimeException(e);
+        
         }
         
     }
