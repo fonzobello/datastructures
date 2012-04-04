@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import edu.ncsu.csc.mvta.data.Answer;
 import edu.ncsu.csc.mvta.data.Exam;
@@ -296,7 +297,75 @@ public class ExamService extends Service {
     
     /* START STUDENT CODE */
     
-    // add any methods you want to query for old exams here
+    public Question.ContentArea getWorstContentArea(Exam exam) {
+    	
+    	HashMap<Question.ContentArea,Double> count = new HashMap<Question.ContentArea,Double>();
+    	
+    	HashMap<Question.ContentArea,Double> correct = new HashMap<Question.ContentArea,Double>();
+    	
+        for(Answer answer : exam.answers) {
+
+    		Question question = questionService.getQuestion(answer.questionId);
+    		
+    		count.put(question.contentArea, count.get(question.contentArea) + 1.0);
+    		
+    		if (question.answer.equals(answer.answer)) correct.put(question.contentArea, correct.get(question.contentArea) + 1.0);
+
+        }
+        
+        double lowestScore = 0.0;
+        
+        Question.ContentArea weakestContentArea = Question.ContentArea.values()[0];
+        
+        for(Question.ContentArea contentArea : Question.ContentArea.values()) {
+        	
+        	if ((correct.get(contentArea) / count.get(contentArea)) < lowestScore) {
+        		
+        		lowestScore = (correct.get(contentArea) / count.get(contentArea));
+        		
+        		weakestContentArea = contentArea;
+        		
+        	}
+        }
+    	
+    	return weakestContentArea;
+    	
+    }
+    
+    public Question.Grade getWorstGrade(Exam exam) {
+    	
+    	HashMap<Question.Grade,Double> count = new HashMap<Question.Grade,Double>();
+    	
+    	HashMap<Question.Grade,Double> correct = new HashMap<Question.Grade,Double>();
+    	
+        for(Answer answer : exam.answers) {
+
+    		Question question = questionService.getQuestion(answer.questionId);
+    		
+    		count.put(question.gradeLevel, count.get(question.gradeLevel) + 1.0);
+    		
+    		if (question.answer.equals(answer.answer)) correct.put(question.gradeLevel, correct.get(question.gradeLevel) + 1.0);
+
+        }
+        
+        double lowestScore = 0.0;
+        
+        Question.Grade weakestGrade = Question.Grade.values()[0];
+        
+        for(Question.Grade grade : Question.Grade.values()) {
+        	
+        	if ((correct.get(grade) / count.get(grade)) < lowestScore) {
+        		
+        		lowestScore = (correct.get(grade) / count.get(grade));
+        		
+        		weakestGrade = grade;
+        		
+        	}
+        }
+    	
+    	return weakestGrade;
+    	
+    }
     
     /* END STUDENT CODE */
     
