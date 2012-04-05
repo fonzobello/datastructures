@@ -22,6 +22,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -378,6 +381,31 @@ public class ExamService extends Service {
         }
     	
     	return weakestGrade;
+    	
+    }
+    
+    public Location getExamLocation() {
+    	
+    	LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+    	
+    	Location lastKnownLocation = null;
+    	
+    	if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER ))
+    	{
+        	lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+    	}
+    	
+    	if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) && lastKnownLocation == null)
+    	{
+        	lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+    	}
+    	
+    	if (locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER ) && lastKnownLocation == null)
+    	{
+        	lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+    	}
+
+    	return lastKnownLocation;
     	
     }
     
