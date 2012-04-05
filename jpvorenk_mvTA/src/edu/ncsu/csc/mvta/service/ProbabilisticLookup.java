@@ -171,4 +171,29 @@ public class ProbabilisticLookup {
         
 	}
 	
+	public String toString() {
+		
+		String toReturn = "";
+		
+        for(Question.Difficulty d : Question.Difficulty.values()) {
+        	
+        	toReturn = toReturn + d + ": " + _Difficulty.get(d) + "; ";
+
+        }
+		
+        for(Question.Grade g : Question.Grade.values()) {
+        	
+        	toReturn = toReturn + g + ": " + _Grade.get(g) + "; ";
+
+        }
+		
+        for(Question.ContentArea a : Question.ContentArea.values()) {
+        	
+        	toReturn = toReturn + a + ": " + _ContentArea.get(a) + "; ";
+
+        }
+        
+        return toReturn;
+	}
+	
 }
