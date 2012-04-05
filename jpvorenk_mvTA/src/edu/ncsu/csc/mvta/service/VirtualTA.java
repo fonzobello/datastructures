@@ -32,15 +32,13 @@ public class VirtualTA {
 
     private ExamService examService;
     private QuestionService questionService;
-    private KokoService kokoService;
     private VTAgent vtAgent;
     
     private ProbabilisticLookup probabilisticLookup;
     
-    public VirtualTA(ExamService examService, QuestionService questionService, KokoService kokoService) {
+    public VirtualTA(ExamService examService, QuestionService questionService) {
         this.examService = examService;
         this.questionService = questionService;
-        this.kokoService = kokoService;
         this.probabilisticLookup = new ProbabilisticLookup();
     }
     
@@ -129,28 +127,7 @@ public class VirtualTA {
      * @param parentView the view that contains all content defined in vta_answer.xml
      */
     public void receiveFeedback(View parentView) {
-        
-    	ArrayList<DataInstance> instances = new ArrayList<DataInstance>();
-    	
-    	for(DataDefinition definition : kokoService.koko.getDataDefinitions()) {
-            Serializable value = null;
-        
-            if(definition.getName().equals("weather")) {
-                value = "hot";
-            } else if(definition.getName().equals("highScore")) {
-                value = 93.24;
-            } else if(definition.getName().equals("attemptsToday")) {
-                value = 3;
-            } else if(definition.getName().equals("timeToRespond")) {
-                value = (long)600000;
-            } else if(definition.getName().equals("birthday")) {
-                value = new Date();
-            } else {
-                throw new RuntimeException("Unknown data definition");
-            }
-        
-            instances.add(new DataInstance(definition, value));
-        }    
+ 
     	
     }
 }
