@@ -39,8 +39,7 @@ public class ExamService extends Service {
     private SQLiteDatabase db;
     
     private QuestionService questionService = new QuestionService();
-    private KokoService kokoService = new KokoService();
-    private VirtualTA virtualTA = new VirtualTA(this, questionService, kokoService);
+    private VirtualTA virtualTA = new VirtualTA(this, questionService);
     private VTAgent vtAgetnt ;
 
     
@@ -295,7 +294,7 @@ public class ExamService extends Service {
 	public VTAgent getVTAgetnt() {
 		return vtAgetnt;
 	}
-    
+	
     /* START STUDENT CODE */
     
     public Question.ContentArea getWorstContentArea(Exam exam) {
@@ -304,11 +303,18 @@ public class ExamService extends Service {
     	
     	HashMap<Question.ContentArea,Double> correct = new HashMap<Question.ContentArea,Double>();
     	
+    	for(Question.ContentArea contentArea : Question.ContentArea.values()) {
+    		
+    		count.put(contentArea, 0.0);
+    		
+    		correct.put(contentArea, 0.0);
+    	}
+    	
         for(Answer answer : exam.answers) {
 
     		Question question = questionService.getQuestion(answer.questionId);
     		
-    		count.put(question.contentArea, count.get(question.contentArea) + 1.0);
+    		count.put(question.contentArea, count.get(question.contentArea)  + 1.0);
     		
     		if (question.answer.equals(answer.answer)) correct.put(question.contentArea, correct.get(question.contentArea) + 1.0);
 
@@ -339,13 +345,20 @@ public class ExamService extends Service {
     	
     	HashMap<Question.Grade,Double> correct = new HashMap<Question.Grade,Double>();
     	
+    	for(Question.Grade grade : Question.Grade.values()) {
+    		
+    		count.put(grade, 0.0);
+    		
+    		correct.put(grade, 0.0);
+    	}
+    	
         for(Answer answer : exam.answers) {
 
     		Question question = questionService.getQuestion(answer.questionId);
     		
     		count.put(question.gradeLevel, count.get(question.gradeLevel) + 1.0);
     		
-    		if (question.answer.equals(answer.answer)) correct.put(question.gradeLevel, correct.get(question.gradeLevel) + 1.0);
+    		if (question.answer.equals(answer.answer)) correct.put(question.gradeLevel, count.get(question.gradeLevel) + 1.0);
 
         }
         
