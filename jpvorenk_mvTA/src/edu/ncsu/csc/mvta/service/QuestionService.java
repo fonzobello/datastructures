@@ -89,8 +89,13 @@ public class QuestionService {
                 validQuestions.add(q);
         }
         
-        if(validQuestions.size() == 0)
-            return null;
+        if(validQuestions.size() == 0) {
+        	
+        	System.out.println("No questions with DIFFICULTY: " + difficulty + ", GRADE: " + grade + ", CONTENT: " + contentArea);
+        	
+        	return randomQuestion();
+        	
+        }
         
         int position = (int)(Math.random() * validQuestions.size());
         return validQuestions.get(position);
