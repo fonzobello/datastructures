@@ -1,15 +1,10 @@
 package edu.ncsu.csc.mvta.service;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import com.derekandbritt.koko.configuration.DataDefinition;
-import com.derekandbritt.koko.events.DataInstance;
-
-import android.content.Context;
-import android.location.LocationManager;
+import android.location.Address;
+import android.location.Location;
 import android.view.View;
 import edu.ncsu.csc.mvta.data.Answer;
 import edu.ncsu.csc.mvta.data.Exam;
@@ -36,10 +31,17 @@ public class VirtualTA {
     
     private ProbabilisticLookup probabilisticLookup;
     
+    private List<Address> studyLocations;
+    private Location lastKnownLocation;
+    
     public VirtualTA(ExamService examService, QuestionService questionService) {
         this.examService = examService;
         this.questionService = questionService;
         this.probabilisticLookup = new ProbabilisticLookup();
+        this.studyLocations = new ArrayList<Address>();
+        
+        addStudyLocation("D.H. Hill", 35.787500, -78.66950);
+        addStudyLocation("Centennial EBII", 35.772000, -78.67400);
     }
     
     /**
@@ -77,7 +79,13 @@ public class VirtualTA {
     	 *    If they are not in any of the above situations, assume they are in a distracting environment and give them easy questions
     	 */
     	
+        Location currentLocation = this.examService.getExamLocation();
         
+        if (isWithinStudyLocation(currentLocation)) this.probabilisticLookup.increaseDifficulty(Question.Difficulty.HARD, 0.10);
+        
+        else if (isTraveling(currentLocation)) this.probabilisticLookup.increaseDifficulty(Question.Difficulty.HARD, 0.10);
+        
+        else this.probabilisticLookup.increaseDifficulty(Question.Difficulty.HARD, 0.10);
         
     	/**
     	 * Category 3: Emotional Data
@@ -89,9 +97,11 @@ public class VirtualTA {
     	 * To avoid infinite loops, max out the number of times a new question is generated to 10
     	 */
     	
+        
+        
+    	lastKnownLocation = currentLocation;
+        
         Question toReturn = questionService.randomQuestion(probabilisticLookup.getGrade(), probabilisticLookup.getDifficulty(), probabilisticLookup.getContentArea());
-        
-        
         
         return toReturn;
     }
@@ -128,6 +138,43 @@ public class VirtualTA {
      */
     public void receiveFeedback(View parentView) {
  
+    	
+    }
+    
+    public void addStudyLocation(String name, double latitude, double longitude) {
+    	
+    	Address address = new Address(null);
+    	address.setFeatureName(name);
+    	address.setLatitude(latitude);
+    	address.setLongitude(longitude);
+    	studyLocations.add(address);
+    	
+    }
+    
+    public boolean isTraveling(Location location) {
+    	
+    	if (location == lastKnownLocation) return false;
+    	
+    	else return true;
+
+    }
+    
+    public boolean isWithinStudyLocation(Location location) {
+    	
+    	if (location == null) return false;
+    	
+    	for (Address address : studyLocations) {
+    		
+    		if (Math.abs((address.getLatitude() - location.getLatitude())) < 0.001) {
+    			
+    			if (Math.abs((address.getLongitude() - location.getLongitude())) < 0.001)
+    				
+    				return true;
+    		}
+    		
+    	}
+    	
+    	return false;
     	
     }
 }
