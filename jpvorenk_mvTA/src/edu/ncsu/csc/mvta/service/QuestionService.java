@@ -3,6 +3,8 @@ package edu.ncsu.csc.mvta.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.util.Log;
+
 import edu.ncsu.csc.mvta.data.Question;
 import edu.ncsu.csc.mvta.data.Question.ContentArea;
 import edu.ncsu.csc.mvta.data.Question.Difficulty;
@@ -11,6 +13,7 @@ import edu.ncsu.csc.mvta.data.Question.Grade;
 public class QuestionService {
     
     private final static String URL_PREFIX = "file:///android_asset/question_";
+    private static final String TAG = "QuestionService";
     
     ArrayList<Question> questions = new ArrayList<Question>();
     
@@ -57,6 +60,7 @@ public class QuestionService {
     public Question randomQuestion() {
 
         int position = (int)(Math.random() * questions.size());
+        Log.v(TAG, "Returning Random Question");
         return questions.get(position);
     }
     
@@ -69,10 +73,13 @@ public class QuestionService {
                 validQuestions.add(q);
         }
         
-        if(validQuestions.size() == 0)
-            return null;
+        if(validQuestions.size() == 0) {
+        	Log.v(TAG, "No Questions with DIFFICULTY: " + difficulty + ", GRADE: " + grade);
+            return randomQuestion();
+        }
         
         int position = (int)(Math.random() * validQuestions.size());
+        Log.v(TAG, "Returning Question with DIFFICULTY: " + difficulty + ", GRADE: " + grade);
         return validQuestions.get(position);
     }
     
@@ -90,14 +97,12 @@ public class QuestionService {
         }
         
         if(validQuestions.size() == 0) {
-        	
-        	System.out.println("No questions with DIFFICULTY: " + difficulty + ", GRADE: " + grade + ", CONTENT: " + contentArea);
-        	
-        	return randomQuestion();
-        	
+        	Log.v(TAG, "No Questions with DIFFICULTY: " + difficulty + ", GRADE: " + grade + ", CONTENT: " + contentArea);
+        	return randomQuestion(grade, difficulty);        	
         }
         
         int position = (int)(Math.random() * validQuestions.size());
+        Log.v(TAG, "Returning Question with DIFFICULTY: " + difficulty + ", GRADE: " + grade + ", CONTENT: " + contentArea);
         return validQuestions.get(position);
         
     }

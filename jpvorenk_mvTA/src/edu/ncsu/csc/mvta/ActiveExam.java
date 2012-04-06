@@ -3,6 +3,7 @@ package edu.ncsu.csc.mvta;
 import edu.ncsu.csc.mvta.data.Answer;
 import edu.ncsu.csc.mvta.data.Question;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.webkit.WebSettings;
@@ -22,6 +23,7 @@ public class ActiveExam extends ExamActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        examService.onActiveExam();
         askQuestion();
     }
     

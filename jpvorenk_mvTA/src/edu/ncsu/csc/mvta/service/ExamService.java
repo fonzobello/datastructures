@@ -92,6 +92,7 @@ public class ExamService extends Service {
         }
         
         cursor.close();
+
     }
     
     @Override
@@ -300,6 +301,14 @@ public class ExamService extends Service {
 	
     /* START STUDENT CODE */
     
+    /**
+     * Called when ActiveExam.onCreate() is called;
+     * Used to gather test history when a new exam is started;
+     */
+	public void onActiveExam() {
+		virtualTA.initialize();
+	}
+	
     public Question.ContentArea getWorstContentArea(Exam exam) {
     	
     	HashMap<Question.ContentArea,Double> count = new HashMap<Question.ContentArea,Double>();

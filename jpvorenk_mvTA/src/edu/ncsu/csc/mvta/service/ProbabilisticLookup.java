@@ -173,27 +173,50 @@ public class ProbabilisticLookup {
 	
 	public String toString() {
 		
+		return printDificultyDistribution() + printGradeDistribution() + printContentAreaDistribution();
+	
+	}
+	
+	public String printDificultyDistribution() {
+		
 		String toReturn = "";
 		
         for(Question.Difficulty d : Question.Difficulty.values()) {
         	
-        	toReturn = toReturn + d + ": " + _Difficulty.get(d) + "; ";
-
-        }
-		
-        for(Question.Grade g : Question.Grade.values()) {
-        	
-        	toReturn = toReturn + g + ": " + _Grade.get(g) + "; ";
-
-        }
-		
-        for(Question.ContentArea a : Question.ContentArea.values()) {
-        	
-        	toReturn = toReturn + a + ": " + _ContentArea.get(a) + "; ";
+        	toReturn = toReturn + d + ": " + Double.valueOf(_Difficulty.get(d) * 100).intValue() + "%; ";
 
         }
         
         return toReturn;
+		
+	}
+	
+	public String printGradeDistribution() {
+		
+		String toReturn = "";
+		
+        for(Question.Grade g : Question.Grade.values()) {
+        	
+        	toReturn = toReturn + g + ": " + Double.valueOf(_Grade.get(g) * 100).intValue() + "%; ";
+
+        }
+        
+        return toReturn;
+		
+	}
+	
+	public String printContentAreaDistribution() {
+		
+		String toReturn = "";
+		
+        for(Question.ContentArea a : Question.ContentArea.values()) {
+        	
+        	toReturn = toReturn + a + ": " + Double.valueOf(_ContentArea.get(a) * 100).intValue() + "%; ";
+
+        }
+        
+        return toReturn;
+		
 	}
 	
 }
