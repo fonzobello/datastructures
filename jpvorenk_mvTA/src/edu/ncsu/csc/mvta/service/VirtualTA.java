@@ -1,7 +1,14 @@
 package edu.ncsu.csc.mvta.service;
 
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.derekandbritt.koko.client.json.KokoEndpoint;
+import com.derekandbritt.koko.configuration.ConfigurationUtil;
+import com.derekandbritt.koko.configuration.DataDefinition;
+import com.derekandbritt.koko.configuration.DataType;
+import com.derekandbritt.koko.emotion.EmotionType;
 
 import android.location.Address;
 import android.location.Location;
@@ -60,16 +67,6 @@ public class VirtualTA {
      * @return the question selected by the virtual TA
      */
     public Question nextQuestion() {
-        
-    	/**
-    	 * Category 3: Emotional Data
-    	 * 
-    	 * 1) Generate a new question based on categories 1 and 2
-    	 * 2) Ask Koko if the user will become too frustrated, or too bored if we ask the question
-    	 * 3) If the answer is yes, then generate a new question, if not then present the question to the user.
-    	 * 
-    	 * To avoid infinite loops, max out the number of times a new question is generated to 10
-    	 */
         
         Question toReturn = questionService.randomQuestion(probabilisticLookup.getGrade(), probabilisticLookup.getDifficulty(), probabilisticLookup.getContentArea());
         
@@ -157,6 +154,14 @@ public class VirtualTA {
         }
     	Log.v(TAG, "New Difficulty Distribution: " + this.probabilisticLookup.printGradeDistribution());
         
+    	/**
+    	 * Category 3: Emotional Data
+    	 * 
+    	 * 1) Initialize the KokoEndpoint here
+    	 */
+    	
+    	KokoEndpoint koko = createKokoEndpoint();
+    	
 	}
     
     public void addStudyLocation(String name, double latitude, double longitude) {
@@ -187,6 +192,32 @@ public class VirtualTA {
     	}
     	Log.v(TAG, "User Not At Predefined Study Location");
     	return false;
+    }
+    
+    /**
+     * This method registers your application with Koko by providing Koko
+     * with all the necessary information.  The appID is directly tied to a specific
+     * set of emotionTypes and dataDefinitions.  If you update either of those
+     * sets then you will need to provide a new appID.
+     * 
+     * @return a KokoEndpoint configured for a specific application
+     */
+    private KokoEndpoint createKokoEndpoint() {
+        
+        HashSet<EmotionType> emotionTypes = new HashSet<EmotionType>();
+        ArrayList<DataDefinition> dataDefinitions = new ArrayList<DataDefinition>();
+        
+        emotionTypes.add(EmotionType.LIKE);
+        emotionTypes.add(EmotionType.DISLIKE);
+        
+        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("weather", "cold,hot,foggy"));
+        dataDefinitions.add(new DataDefinition("highScore", DataType.DOUBLE));
+        dataDefinitions.add(new DataDefinition("attemptsToday", DataType.INT));
+        dataDefinitions.add(new DataDefinition("timeToRespond", DataType.LONG));
+        dataDefinitions.add(new DataDefinition("birthday", DataType.DATE));
+        
+        return new KokoEndpoint("vTA_jpvorenk_test", emotionTypes, dataDefinitions);
+
     }
     
 }
