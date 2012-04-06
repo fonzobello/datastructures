@@ -5,10 +5,13 @@ import java.util.List;
 
 import android.location.Address;
 import android.location.Location;
+import android.util.Log;
 import android.view.View;
 import edu.ncsu.csc.mvta.data.Answer;
 import edu.ncsu.csc.mvta.data.Exam;
 import edu.ncsu.csc.mvta.data.Question;
+import edu.ncsu.csc.mvta.data.Question.ContentArea;
+import edu.ncsu.csc.mvta.data.Question.Grade;
 import edu.ncsu.csc.mvta.jade.VTAgent;
 
 /**
@@ -25,6 +28,8 @@ import edu.ncsu.csc.mvta.jade.VTAgent;
  */
 public class VirtualTA {
 
+	private static final String TAG = "VirtualTA";
+	
     private ExamService examService;
     private QuestionService questionService;
     private VTAgent vtAgent;
@@ -32,7 +37,6 @@ public class VirtualTA {
     private ProbabilisticLookup probabilisticLookup;
     
     private List<Address> studyLocations;
-    private Location lastKnownLocation;
     
     public VirtualTA(ExamService examService, QuestionService questionService) {
         this.examService = examService;
@@ -42,6 +46,11 @@ public class VirtualTA {
         
         addStudyLocation("D.H. Hill", 35.787500, -78.66950);
         addStudyLocation("Centennial EBII", 35.772000, -78.67400);
+        
+        Log.v(TAG, "Setting Default Difficulty: " + this.probabilisticLookup.printDificultyDistribution());
+        Log.v(TAG, "Setting Default Grade: " + this.probabilisticLookup.printGradeDistribution());
+        Log.v(TAG, "Setting Default Content: " + this.probabilisticLookup.printContentAreaDistribution());
+        
     }
     
     /**
@@ -51,41 +60,6 @@ public class VirtualTA {
      * @return the question selected by the virtual TA
      */
     public Question nextQuestion() {
-    	
-    	/**
-    	 * Category 1: Exam Data
-    	 * 
-    	 * 1) Look at the past three exams
-    	 * 2) If past exams were lacking in one content area, then increase the probability of those questions
-    	 * 3) If past exams were lacking at one grade level, then increase probability of asking question from that grade level
-    	 */
-    	
-    	List<Exam> previousExams = examService.getPreviousExams(3);
-    	
-        for(Exam exam : previousExams) {
-
-       		this.probabilisticLookup.increaseContentArea(examService.getWorstContentArea(exam), 0.10);
-       		
-       		this.probabilisticLookup.increaseGrade(examService.getWorstGrade(exam), 0.10);
-        		
-        }
-    	
-    	/**
-    	 * Category 2: Environmental Data
-    	 * 
-    	 * 1) Determine the geographical location of the user.  Check this location against preset locations for study:
-    	 *    If the user is at a predefined study location, increase the probability of hard questions
-    	 *    If the user is traveling, assume they are bored and give them more challenging questions
-    	 *    If they are not in any of the above situations, assume they are in a distracting environment and give them easy questions
-    	 */
-    	
-        Location currentLocation = this.examService.getExamLocation();
-        
-        if (isWithinStudyLocation(currentLocation)) this.probabilisticLookup.increaseDifficulty(Question.Difficulty.HARD, 0.10);
-        
-        else if (isTraveling(currentLocation)) this.probabilisticLookup.increaseDifficulty(Question.Difficulty.HARD, 0.10);
-        
-        else this.probabilisticLookup.increaseDifficulty(Question.Difficulty.HARD, 0.10);
         
     	/**
     	 * Category 3: Emotional Data
@@ -96,10 +70,6 @@ public class VirtualTA {
     	 * 
     	 * To avoid infinite loops, max out the number of times a new question is generated to 10
     	 */
-    	
-        
-        
-    	lastKnownLocation = currentLocation;
         
         Question toReturn = questionService.randomQuestion(probabilisticLookup.getGrade(), probabilisticLookup.getDifficulty(), probabilisticLookup.getContentArea());
         
@@ -141,6 +111,54 @@ public class VirtualTA {
     	
     }
     
+	public void initialize() {
+
+    	/**
+    	 * Category 1: Exam Data
+    	 * 
+    	 * 1) Look at the past three exams
+    	 * 2) If past exams were lacking in one content area, then increase the probability of those questions
+    	 * 3) If past exams were lacking at one grade level, then increase probability of asking question from that grade level
+    	 */
+    	
+    	List<Exam> previousExams = examService.getPreviousExams(3);
+    	
+    	if (previousExams.size() == 0) Log.v(TAG, "No previous exams to analyze");
+    	
+        for(Exam exam : previousExams) {
+
+        	ContentArea contentArea = examService.getWorstContentArea(exam);
+        	Grade grade = examService.getWorstGrade(exam);
+        	
+        	Log.v(TAG, "Based exam taken " + exam.completionTime + ", " + contentArea + " needs to be increased");
+       		this.probabilisticLookup.increaseContentArea(contentArea, 0.10);
+       		Log.v(TAG, "New Content Distribution: " + this.probabilisticLookup.printContentAreaDistribution());
+       		
+       		Log.v(TAG, "Based exam taken " + exam.completionTime + ", " + grade + " needs to be increased");
+       		this.probabilisticLookup.increaseGrade(grade, 0.10);
+       		Log.v(TAG, "New Grade Distribution: " + this.probabilisticLookup.printGradeDistribution());
+        		
+        }
+        
+    	/**
+    	 * Category 2: Environmental Data
+    	 * 
+    	 * 1) Determine the geographical location of the user.  Check this location against preset locations for study:
+    	 *    If the user is at a predefined study location, increase the probability of hard questions
+    	 *    If not, assume they are in a distracting environment and give them easy questions
+    	 */
+        
+        if (isWithinStudyLocation(this.examService.getExamLocation())) {
+        	Log.v(TAG, "Based on study location, difficulty needs to be increased");
+        	this.probabilisticLookup.increaseDifficulty(Question.Difficulty.HARD, 0.10);
+        } else {
+        	Log.v(TAG, "Based on study location, difficulty needs to be decreased");
+        	this.probabilisticLookup.increaseDifficulty(Question.Difficulty.EASY, 0.10);
+        }
+    	Log.v(TAG, "New Difficulty Distribution: " + this.probabilisticLookup.printGradeDistribution());
+        
+	}
+    
     public void addStudyLocation(String name, double latitude, double longitude) {
     	
     	Address address = new Address(null);
@@ -151,30 +169,24 @@ public class VirtualTA {
     	
     }
     
-    public boolean isTraveling(Location location) {
-    	
-    	if (location == lastKnownLocation) return false;
-    	
-    	else return true;
-
-    }
-    
     public boolean isWithinStudyLocation(Location location) {
     	
-    	if (location == null) return false;
+    	if (location == null) {
+    		Log.v(TAG, "User Location: " + location);
+    		return false;	
+    	}
+    	Log.v(TAG, "User Location: " + location.getLatitude() + ", " + location.getLongitude());
     	
     	for (Address address : studyLocations) {
-    		
     		if (Math.abs((address.getLatitude() - location.getLatitude())) < 0.001) {
-    			
-    			if (Math.abs((address.getLongitude() - location.getLongitude())) < 0.001)
-    				
+    			if (Math.abs((address.getLongitude() - location.getLongitude())) < 0.001) {
+    				Log.v(TAG, "User at Study Location: " + address.getFeatureName());
     				return true;
+    			}
     		}
-    		
     	}
-    	
+    	Log.v(TAG, "User Not At Predefined Study Location");
     	return false;
-    	
     }
+    
 }
