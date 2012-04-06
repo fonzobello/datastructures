@@ -140,14 +140,22 @@ public class ActiveExam extends ExamActivity {
 
                 public void onClick(View view) {
                     
-                    if(!examService.isTestingQuestion()) {
-                        // take any feedback from the user based on the content
-                        // configured by the vTA
-                        View taContent = (View)findViewById(R.id.TAContent);
-                        examService.getVirtualTA().receiveFeedback(taContent);
-                    }
-                    
-                    askQuestion();
+                	RadioGroup feedback = (RadioGroup) findViewById(R.id.FeedbackRadioGroup);
+                	
+                	if (feedback.getCheckedRadioButtonId() == -1) Toast.makeText(feedback.getContext(), "Please Select an Answer.", 2);
+                	
+                	else {
+                	
+	                    if(!examService.isTestingQuestion()) {
+	                        // take any feedback from the user based on the content
+	                        // configured by the vTA
+	                        View taContent = (View)findViewById(R.id.TAContent);
+	                        examService.getVirtualTA().receiveFeedback(taContent);
+	                    }
+	                    
+	                    askQuestion();
+	                    
+                	}
                 }
             });
         } else {

@@ -1,23 +1,32 @@
 package edu.ncsu.csc.mvta.service;
 
+import java.io.Serializable;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.derekandbritt.koko.client.json.JSONEndpointException;
 import com.derekandbritt.koko.client.json.KokoEndpoint;
 import com.derekandbritt.koko.configuration.ConfigurationUtil;
 import com.derekandbritt.koko.configuration.DataDefinition;
 import com.derekandbritt.koko.configuration.DataType;
 import com.derekandbritt.koko.emotion.EmotionType;
+import com.derekandbritt.koko.emotion.EmotionVector;
+import com.derekandbritt.koko.events.DataInstance;
 
 import android.location.Address;
 import android.location.Location;
 import android.util.Log;
 import android.view.View;
+import android.widget.RadioGroup;
+import android.widget.Toast;
+import edu.ncsu.csc.mvta.R;
 import edu.ncsu.csc.mvta.data.Answer;
 import edu.ncsu.csc.mvta.data.Exam;
 import edu.ncsu.csc.mvta.data.Question;
 import edu.ncsu.csc.mvta.data.Question.ContentArea;
+import edu.ncsu.csc.mvta.data.Question.Difficulty;
 import edu.ncsu.csc.mvta.data.Question.Grade;
 import edu.ncsu.csc.mvta.jade.VTAgent;
 
@@ -42,6 +51,8 @@ public class VirtualTA {
     private VTAgent vtAgent;
     
     private ProbabilisticLookup probabilisticLookup;
+    private KokoEndpoint koko;
+    private Question previousQuestion;
     
     private List<Address> studyLocations;
     
@@ -67,10 +78,44 @@ public class VirtualTA {
      * @return the question selected by the virtual TA
      */
     public Question nextQuestion() {
+ 
+    	/**
+    	 * Category 3: Emotional Data
+    	 * 
+    	 * 1) Use the grade, difficulty, and contentArea as variables to predict if the question
+    	 *    will make the user frustrated or bored.  If it is predicted that it will, then choose
+    	 *    a set of criteria based on prior probabilities.
+    	 *    
+    	 *    Limit the number of re-searches to 10, to avoid infinite loops
+    	 */
+    
+    	Grade grade = probabilisticLookup.getGrade();    	
+    	Difficulty difficulty = probabilisticLookup.getDifficulty();
+    	ContentArea contentArea = probabilisticLookup.getContentArea();
+    	
+    	//for (int i = 0; i < 10; i ++) {
+
+        	EmotionVector emotionVector;
+			try {
+				emotionVector = predictEmotion(koko, difficulty, grade, contentArea);
+	        	if (emotionVector.getValue(EmotionType.JOY) > emotionVector.getValue(EmotionType.DISTRESS)) {
+		        	Log.v(TAG, "Predicted Emotional Responce: JOY=" + emotionVector.getValue(EmotionType.JOY) + "; DISTRESS=" + emotionVector.getValue(EmotionType.DISTRESS));
+	        		//break;
+	        	}
+			} catch (JSONEndpointException e) {
+    			Log.e(TAG, "Error predicting emotional responce: " + e.getMessage());
+			}
+
+	    	grade = probabilisticLookup.getGrade();    	
+	    	difficulty = probabilisticLookup.getDifficulty();
+	    	contentArea = probabilisticLookup.getContentArea();
+			
+	    	//if (i == 9) Log.v(TAG, "No Suitable Question Found; Emotional Responce Ignored");
+    	//}
+    	
+        previousQuestion = questionService.randomQuestion(grade, difficulty, contentArea);
         
-        Question toReturn = questionService.randomQuestion(probabilisticLookup.getGrade(), probabilisticLookup.getDifficulty(), probabilisticLookup.getContentArea());
-        
-        return toReturn;
+        return previousQuestion;
     }
     
     /**
@@ -105,6 +150,31 @@ public class VirtualTA {
      */
     public void receiveFeedback(View parentView) {
  
+    	RadioGroup feedback = (RadioGroup) parentView.findViewById(R.id.FeedbackRadioGroup);
+    	EmotionType emotion = null;
+    	
+    	switch(feedback.getCheckedRadioButtonId()) {
+    		case R.id.HighSkillHighChallenge:
+    			emotion = EmotionType.LIKE;
+    			break;
+    		case R.id.HighSkillLowChallenge:
+    			emotion = EmotionType.DISTRESS;
+    			break;
+    		case R.id.LowSkillHighChallenge:
+    			emotion = EmotionType.DISTRESS;
+    			break;
+    		case R.id.LowSkillLowChallenge:
+    			emotion = EmotionType.LIKE;
+    			break;
+    		default:
+    			Log.e(TAG, "This should never happen");
+    		}
+    	
+    	try {
+			learnEvent(koko, previousQuestion.difficulty, previousQuestion.gradeLevel, previousQuestion.contentArea, emotion);
+		} catch (JSONEndpointException e) {
+			Log.e(TAG, "Error learning emotional feedback: " + e.getMessage());
+		}
     	
     }
     
@@ -130,7 +200,7 @@ public class VirtualTA {
         	Log.v(TAG, "Based exam taken " + exam.completionTime + ", " + contentArea + " needs to be increased");
        		this.probabilisticLookup.increaseContentArea(contentArea, 0.10);
        		Log.v(TAG, "New Content Distribution: " + this.probabilisticLookup.printContentAreaDistribution());
-       		
+
        		Log.v(TAG, "Based exam taken " + exam.completionTime + ", " + grade + " needs to be increased");
        		this.probabilisticLookup.increaseGrade(grade, 0.10);
        		Log.v(TAG, "New Grade Distribution: " + this.probabilisticLookup.printGradeDistribution());
@@ -160,7 +230,13 @@ public class VirtualTA {
     	 * 1) Initialize the KokoEndpoint here
     	 */
     	
-    	KokoEndpoint koko = createKokoEndpoint();
+    	koko = createKokoEndpoint();
+    	
+    	try {
+			koko.initialize("jpvorenk", "Jason", "Vorenkamp");
+    	} catch (JSONEndpointException e) {
+    		Log.e(TAG, "Error initializing Koko: " + e.getMessage());
+		}
     	
 	}
     
@@ -207,17 +283,82 @@ public class VirtualTA {
         HashSet<EmotionType> emotionTypes = new HashSet<EmotionType>();
         ArrayList<DataDefinition> dataDefinitions = new ArrayList<DataDefinition>();
         
-        emotionTypes.add(EmotionType.LIKE);
-        emotionTypes.add(EmotionType.DISLIKE);
+        emotionTypes.add(EmotionType.JOY);
+        emotionTypes.add(EmotionType.DISTRESS);
         
-        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("weather", "cold,hot,foggy"));
-        dataDefinitions.add(new DataDefinition("highScore", DataType.DOUBLE));
-        dataDefinitions.add(new DataDefinition("attemptsToday", DataType.INT));
-        dataDefinitions.add(new DataDefinition("timeToRespond", DataType.LONG));
-        dataDefinitions.add(new DataDefinition("birthday", DataType.DATE));
+        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("DIFFICULTY", "HARD, MEDIUM, EASY"));
+        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("GRADE", "GRADE_08, GRADE_12"));
+        dataDefinitions.add(ConfigurationUtil.createEnumDataDefinition("CONTENT_AREA", "PROPERTIES_AND_OPERATIONS, GEOMETRY, ANALYSIS_AND_PROBABILITY, ALGEBRA"));
         
         return new KokoEndpoint("vTA_jpvorenk_test", emotionTypes, dataDefinitions);
 
+    }
+    
+    /**
+     * This is an example of how an application can inform Koko about the
+     * emotional state of the user.  Koko uses this info to predict how the 
+     * user will respond to other events in the future.
+     * 
+     * NOTE: the koko.sendEvent(...) includes the user's current emotion
+     * 
+     * @param koko the endpoint for your application
+     * @throws JSONEndpointException
+     */
+    private void learnEvent(KokoEndpoint koko, Difficulty difficulty, Grade gradeLevel, ContentArea contentArea, EmotionType emotion) throws JSONEndpointException {
+        
+        ArrayList<DataInstance> instances = new ArrayList<DataInstance>();
+        
+        for(DataDefinition definition : koko.getDataDefinitions()) {
+            Serializable value = null;
+        
+            if(definition.getName().equals("DIFFICULTY")) {
+                value = difficulty.toString();
+            } else if(definition.getName().equals("GRADE")) {
+                value = gradeLevel.toString();
+            } else if(definition.getName().equals("CONTENT_AREA")) {
+                value = contentArea.toString();
+            } else {
+                throw new RuntimeException("Unknown data definition");
+            }
+        
+            instances.add(new DataInstance(definition, value));
+        }    
+        
+        // leave the second param null if the user has not provided any data
+        koko.sendEvent(instances, emotion);
+    }
+    /**
+     * This is an example of how an application can ask Koko how it thinks the
+     * user will react to a given event.  Koko takes a hypothetical event and 
+     * evaluates it based on the information it has been given. You can call this
+     * method as many times as you like in order to see how the user may respond
+     * to different scenarios.
+     * 
+     * @param koko the endpoint for your application
+     * @return 
+     * @throws JSONEndpointException
+     */
+    private EmotionVector predictEmotion(KokoEndpoint koko, Difficulty difficulty, Grade gradeLevel, ContentArea contentArea) throws JSONEndpointException {
+        
+        ArrayList<DataInstance> instances = new ArrayList<DataInstance>();
+        
+        for(DataDefinition definition : koko.getDataDefinitions()) {
+            Serializable value = null;
+        
+            if(definition.getName().equals("DIFFICULTY")) {
+                value = difficulty.toString();
+            } else if(definition.getName().equals("GRADE")) {
+                value = gradeLevel.toString();
+            } else if(definition.getName().equals("CONTENT_AREA")) {
+                value = contentArea.toString();
+            } else {
+                throw new RuntimeException("Unknown data definition");
+            }
+        
+            instances.add(new DataInstance(definition, value));
+        }
+        
+        return koko.getPredictedEmotion(instances);
     }
     
 }
