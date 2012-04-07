@@ -13,10 +13,10 @@ FEEDBACK LIKE THE RADIO BUTTONS IN QUESTION.XML.
  -->
  
 	<RadioGroup android:id="@+id/FeedbackRadioGroup" android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="left|center_vertical">    	    
-		<RadioButton android:text="Too easy! Got it all right!" android:id="@+id/AnswerA" android:layout_height="39px" android:layout_width="wrap_content" />
-		<RadioButton android:text="Yes! One more down!" android:id="@+id/AnswerB" android:layout_height="39px" android:layout_width="wrap_content" />
-		<RadioButton android:text="Ok! This was a tough one!" android:id="@+id/AnswerC" android:layout_height="39px" android:layout_width="wrap_content"/>
-		<RadioButton android:text="Snap!  No way I could solve it" android:id="@+id/AnswerD" android:layout_height="39px" android:layout_width="wrap_content"/>
+		<RadioButton android:text="This problem was very intriguing" android:id="@+id/HighSkillHighChallenge" android:layout_height="39px" android:layout_width="wrap_content" />
+		<RadioButton android:text="This problem was not very interesting" android:id="@+id/HighSkillLowChallenge" android:layout_height="39px" android:layout_width="wrap_content" />
+		<RadioButton android:text="This problem was too frustrating" android:id="@+id/LowSkillHighChallenge" android:layout_height="39px" android:layout_width="wrap_content"/>
+		<RadioButton android:text="This problem was too easy" android:id="@+id/LowSkillLowChallenge" android:layout_height="39px" android:layout_width="wrap_content"/>
 	</RadioGroup>
 
 </LinearLayout>
