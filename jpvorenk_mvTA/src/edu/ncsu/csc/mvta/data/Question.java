@@ -14,6 +14,8 @@ public class Question implements Serializable {
     public Grade gradeLevel;
     public ContentArea contentArea;
     public Difficulty difficulty;
+    
+    public Boolean isAmbiguous;
 
     
     public enum Grade {
@@ -49,6 +51,14 @@ public class Question implements Serializable {
             this.difficulty = Difficulty.MEDIUM;
         else
             this.difficulty = Difficulty.HARD;
+        
+        setAmbiguous(false);
+    }
+    
+    public void setAmbiguous(Boolean isAmbiguous) {
+    	
+    	this.isAmbiguous = isAmbiguous;
+    	
     }
     
 }
