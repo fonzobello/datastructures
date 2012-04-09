@@ -81,7 +81,7 @@ public class ExamApplication extends Application implements ConnectionListener{
         vTAgent = new VTAgent(msisdn,host,port,all_msisdn);
        
         // CREATE THE Message Listener
-        messageListener = new MessageListener();
+        messageListener = new MessageListener(examService);
 		// CREATE AND THE JADE PROPERTIES CLASS
 		Properties props = new Properties();
 		props.setProperty(Profile.MAIN_HOST, host);

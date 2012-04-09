@@ -43,8 +43,7 @@ public class ExamService extends Service {
     
     private QuestionService questionService = new QuestionService();
     private VirtualTA virtualTA = new VirtualTA(this, questionService);
-    private VTAgent vtAgetnt ;
-
+    private VTAgent vtAgetnt;
     
     private Exam activeExam;
     
@@ -307,6 +306,63 @@ public class ExamService extends Service {
      */
 	public void onActiveExam() {
 		virtualTA.initialize();
+	}
+	
+	public void setAmbiguousQuestion(int questionId) {
+		
+		this.questionService.getQuestion(questionId).setAmbiguous(true);
+	}
+	
+	public Integer getLowestQuestionScore() {
+		
+		List<Double> totalAttempts = new ArrayList<Double>();
+		List<Double> correctAttempts = new ArrayList<Double>();
+
+		Double lowestQuestionScore = 1.0;
+		Integer lowestQuestionID = -1;
+		
+		List<Exam> previousExams = getPreviousExams(3);
+    	
+    	if (previousExams.size() == 0) Log.v(LOG_TAG, "No previous exams to analyze");
+    	
+        for(Exam exam : previousExams) {
+        	
+        	for (Answer answer: exam.answers ) {
+        		
+        		if (answer.answer == questionService.getQuestion(answer.questionId).answer) {
+
+        			if (correctAttempts.get(answer.questionId) == null) correctAttempts.add(answer.questionId, 1.0);
+        			else correctAttempts.add(answer.questionId, correctAttempts.get(answer.questionId) + 1.0);
+        			
+        		}
+        		
+    			if (totalAttempts.get(answer.questionId) == null) totalAttempts.add(answer.questionId, 1.0);
+    			else totalAttempts.add(answer.questionId, totalAttempts.get(answer.questionId) + 1.0);
+        		
+        	}
+        	
+        }
+        
+        for(Question question: questionService.questions) {
+        	
+        	Double numberCorrectAttempts = correctAttempts.get(question.id);
+        	Double numberTotalAttempts = totalAttempts.get(question.id);
+        	
+        	if (numberCorrectAttempts == null) numberTotalAttempts = 0.0;
+        	if (numberTotalAttempts != null) {
+        	
+        		if (lowestQuestionScore > (numberCorrectAttempts / numberTotalAttempts)) {
+        			
+        			lowestQuestionScore = (numberCorrectAttempts / numberTotalAttempts);
+        			lowestQuestionID = question.id;
+        		}
+        		
+        	}
+        	
+        }
+        
+        return lowestQuestionID;
+        
 	}
 	
     public Question.ContentArea getWorstContentArea(Exam exam) {

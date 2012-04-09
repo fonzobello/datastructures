@@ -93,28 +93,31 @@ public class VirtualTA {
     	Difficulty difficulty = probabilisticLookup.getDifficulty();
     	ContentArea contentArea = probabilisticLookup.getContentArea();
     	
-    	//for (int i = 0; i < 10; i ++) {
+    	for (int i = 0; i < 10; i ++) {
 
         	EmotionVector emotionVector;
 			try {
 				emotionVector = predictEmotion(koko, difficulty, grade, contentArea);
-	        	if (emotionVector.getValue(EmotionType.JOY) > emotionVector.getValue(EmotionType.DISTRESS)) {
-		        	Log.v(TAG, "Predicted Emotional Responce: JOY=" + emotionVector.getValue(EmotionType.JOY) + "; DISTRESS=" + emotionVector.getValue(EmotionType.DISTRESS));
-	        		//break;
-	        	}
+				if (emotionVector != null) {
+		        	if (emotionVector.getValue(EmotionType.JOY) > emotionVector.getValue(EmotionType.DISTRESS)) {
+			        	Log.v(TAG, "Predicted Emotional Responce: JOY=" + emotionVector.getValue(EmotionType.JOY) + "; DISTRESS=" + emotionVector.getValue(EmotionType.DISTRESS));
+		        		break;
+		        	}
+				}
 			} catch (JSONEndpointException e) {
-    			Log.e(TAG, "Error predicting emotional responce: " + e.getMessage());
+    			//Log.e(TAG, "Error predicting emotional response: " + e.getMessage());
 			}
 
 	    	grade = probabilisticLookup.getGrade();    	
 	    	difficulty = probabilisticLookup.getDifficulty();
 	    	contentArea = probabilisticLookup.getContentArea();
 			
-	    	//if (i == 9) Log.v(TAG, "No Suitable Question Found; Emotional Responce Ignored");
-    	//}
+	    	if (i == 9) Log.v(TAG, "No Suitable Question Found; Emotional Responce Ignored");
+    	
+    	}
     	
         previousQuestion = questionService.randomQuestion(grade, difficulty, contentArea);
-        
+
         return previousQuestion;
     }
     
