@@ -57,7 +57,7 @@ public class ProbabilisticLookup {
 		
         for(Question.Difficulty d : Question.Difficulty.values()) {
         	
-        	if (d != difficulty) _Difficulty.put(d, remainingPercentageAfterIncrease * (currentPercentage / remainingPercentage));
+        	if (d != difficulty) _Difficulty.put(d, remainingPercentageAfterIncrease * (_Difficulty.get(d) / remainingPercentage));
 
         }
 
@@ -83,7 +83,7 @@ public class ProbabilisticLookup {
 		
         for(Question.Grade g : Question.Grade.values()) {
         	
-        	if (g != grade) _Grade.put(g, remainingPercentageAfterIncrease * (currentPercentage / remainingPercentage));
+        	if (g != grade) _Grade.put(g, remainingPercentageAfterIncrease * (_Grade.get(g) / remainingPercentage));
 
         }
 
@@ -109,7 +109,7 @@ public class ProbabilisticLookup {
 		
         for(Question.ContentArea g : Question.ContentArea.values()) {
         	
-        	if (g != contentArea) _ContentArea.put(g, remainingPercentageAfterIncrease * (currentPercentage / remainingPercentage));
+        	if (g != contentArea) _ContentArea.put(g, remainingPercentageAfterIncrease * (_ContentArea.get(g) / remainingPercentage));
 
         }
 
